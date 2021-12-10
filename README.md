@@ -20,7 +20,7 @@ cmake ..
 make
 make install
 ```
-
+The default installation path will be /usr/local/lib64.
 
 # Library API
 
