@@ -739,6 +739,6 @@ void _remove_edge_callback(int gpio, const Callback& callback)
     }
 }
 
-void _event_cleanup(int gpio) { _remove_edge_detect(gpio); }
+void _event_cleanup(int gpio) { _remove_edge_detect(gpio);}
 
 } // namespace GPIO

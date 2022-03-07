@@ -39,16 +39,17 @@ DEALINGS IN THE SOFTWARE.
 
 namespace std 
 {
-	template <class...>
-	using void_t = void;
+    template <class...>
+    using void_t = void;
 }
 
 #endif
 
+#define _SYSFS_ROOT "/sys/class/gpio"
+
 namespace GPIO
 {
-   constexpr auto VERSION = "0.1.0";
-   constexpr auto _SYSFS_ROOT = "/sys/class/gpio";
+   constexpr auto VERSION = "1.0.0";
 
    extern const std::string BOARD_INFO;
    extern const std::string model;
@@ -230,23 +231,23 @@ namespace GPIO
 
    //----------------------------------
 
+   class GpioPwmIf;
    class PWM
    {
-   public:
-      PWM(int channel, int frequency_hz);
-      PWM(PWM&& other);
-      PWM& operator=(PWM&& other);
-      PWM(const PWM&) = delete;            // Can't create duplicate PWM objects
-      PWM& operator=(const PWM&) = delete; // Can't create duplicate PWM objects
-      ~PWM();
-      void start(double duty_cycle_percent);
-      void stop();
-      void ChangeFrequency(int frequency_hz);
-      void ChangeDutyCycle(double duty_cycle_percent);
+       public:
+          PWM(int channel, int frequency_hz);
+          PWM(PWM&& other);
+          PWM& operator=(PWM&& other);
+          PWM(const PWM&) = delete;            // Can't create duplicate PWM objects
+          PWM& operator=(const PWM&) = delete; // Can't create duplicate PWM objects
+          ~PWM();
+          void start(double duty_cycle_percent);
+          void stop();
+          void ChangeFrequency(int frequency_hz);
+          void ChangeDutyCycle(double duty_cycle_percent);
 
-   private:
-      struct Impl;
-      Impl *pImpl{nullptr};
+       private:
+          GpioPwmIf *pImpl{nullptr};
    };
 
 } // namespace GPIO
