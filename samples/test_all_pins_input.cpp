@@ -30,18 +30,18 @@ DEALINGS IN THE SOFTWARE.
 using namespace std;
 
 const initializer_list<int> board_pins =
-{7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26, 29, 31, 32, 33,
+{7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26, 
  35, 36, 37, 38, 40};
 
 const initializer_list<int> bcm_pins =
-{4, 14, 15, 17, 18, 27, 22, 23, 24, 10, 9, 25, 11, 8, 7, 5, 6, 12, 13, 19,
+{4, 14, 15, 17, 18, 27, 22, 23, 24, 10, 9, 25, 11, 8, 7, 19,
  16, 26, 20, 21};
 
 const initializer_list<string> soc_pins =
 {"GPIO0_7", "GPIO0_70", "GPIO0_81", "GPIO0_71", "GPIO0_1", "GPIO0_82",
  "GPIO0_11", "GPIO0_5", "GPIO0_12", "GPIO0_101", "GPIO0_107", "GPIO0_8",
- "GPIO0_103", "GPIO0_102", "GPIO0_108", "GPIO0_93", "GPIO0_94", "GPIO0_98",
- "GPIO0_99", "GPIO0_2", "GPIO0_97", "GPIO0_115", "GPIO0_3", "GPIO0_4"};
+ "GPIO0_103", "GPIO0_102", "GPIO0_108", "GPIO0_2", "GPIO0_97", "GPIO0_115",
+ "GPIO0_3", "GPIO0_4"};
 
 static map<GPIO::NumberingModes, string> board_mode =
 {

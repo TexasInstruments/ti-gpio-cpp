@@ -94,7 +94,7 @@ int testEvents()
 
     delay(1000);
     cout << endl << "#Demo - GPIO::wait_for_edge" << endl;
-    cout << endl << "Waiting for rising edge:" << endl;
+    cout << endl << "Waiting for rising edge on pin [" << button_pin << "]:" << endl;
     if (GPIO::wait_for_edge(button_pin, GPIO::RISING))
         cout << "--Rising Edge Detected!" << endl;
 
@@ -335,12 +335,12 @@ int main()
     GPIO::setmode(GPIO::BOARD);
     GPIO::setup(output_pin, GPIO::OUT, GPIO::HIGH);
 
-    cout << "BOARD " << output_pin << "pin, set to OUTPUT, HIGH" << endl;
+    cout << "BOARD " << output_pin << " pin, set to OUTPUT, HIGH" << endl;
     cout << "Press Enter to Continue";
     cin.ignore();
 
     GPIO::output(output_pin, GPIO::LOW);
-    cout << output_pin << "pin, set to LOW now" << endl;
+    cout << output_pin << " pin, set to LOW now" << endl;
     cout << "Press Enter to Continue";
     cin.ignore();
 

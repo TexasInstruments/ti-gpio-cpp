@@ -28,6 +28,7 @@ DEALINGS IN THE SOFTWARE.
 #define GPIO_PIN_DATA_H
 
 // Standard headers
+#include <fstream>
 #include <string>
 #include <map>
 #include <vector>
@@ -38,65 +39,79 @@ DEALINGS IN THE SOFTWARE.
 // Local headers
 #include "model.h"
 
-struct PinDefinition
+namespace GPIO
 {
-    const int LinuxPin;            // Linux GPIO pin number
-    const std::string SysfsDir;    // GPIO chip sysfs directory
-    const std::string BoardPin;    // Pin number (BOARD mode)
-    const std::string BCMPin;      // Pin number (BCM mode)
-    const std::string SOCPin;      // Pin name (SOC mode)
-    const std::string PWMSysfsDir; // PWM chip sysfs directory
-    const int PWMID;               // PWM ID within PWM chip
-
-    std::string PinName(GPIO::NumberingModes key) const
+    struct PinDefinition
     {
-        if (key == GPIO::BOARD)
-            return BoardPin;
-        else if (key == GPIO::BCM)
-            return BCMPin;
-        else // SOC
-            return SOCPin;
-    }
-};
+        const int LinuxPin;            // Linux GPIO pin number
+        const std::string SysfsDir;    // GPIO chip sysfs directory
+        const std::string BoardPin;    // Pin number (BOARD mode)
+        const std::string BCMPin;      // Pin number (BCM mode)
+        const std::string SOCPin;      // Pin name (SOC mode)
+        const std::string PWMSysfsDir; // PWM chip sysfs directory
+        const int PWMID;               // PWM ID within PWM chip
 
-struct PinInfo
-{
-    const int P1_REVISION;
-    const std::string RAM;
-    const std::string REVISION;
-    const std::string TYPE;
-    const std::string MANUFACTURER;
-    const std::string PROCESSOR;
-};
+        std::string PinName(GPIO::NumberingModes key) const
+        {
+            if (key == GPIO::BOARD)
+                return BoardPin;
+            else if (key == GPIO::BCM)
+                return BCMPin;
+            else // SOC
+                return SOCPin;
+        }
+    };
 
-struct ChannelInfo
-{
-    const std::string channel;
-    const std::string gpio_chip_dir;
-    const int chip_gpio;
-    const int gpio;
-    const std::string pwm_chip_dir;
-    const int pwm_id;
+    struct PinInfo
+    {
+        const int           P1_REVISION;
+        const std::string   RAM;
+        const std::string   REVISION;
+        const std::string   TYPE;
+        const std::string   MANUFACTURER;
+        const std::string   PROCESSOR;
+    };
 
-    ChannelInfo(const std::string &channel, const std::string &gpio_chip_dir,
-                int chip_gpio, int gpio, const std::string &pwm_chip_dir,
-                int pwm_id)
-        : channel(channel),
-          gpio_chip_dir(gpio_chip_dir),
-          chip_gpio(chip_gpio),
-          gpio(gpio),
-          pwm_chip_dir(pwm_chip_dir),
-          pwm_id(pwm_id)
-    {}
-};
+    struct ChannelInfo
+    {
+        const std::string   channel;
+        const std::string   gpio_chip_dir;
+        const int           chip_gpio;
+        const int           gpio;
+        const std::string   pwm_chip_dir;
+        const int           pwm_id;
 
-struct PinData
-{
-    Model model;
-    PinInfo pin_info;
-    std::map<GPIO::NumberingModes, std::map<std::string, ChannelInfo>> channel_data;
-};
+        std::shared_ptr<std::fstream> f_direction;
+        std::shared_ptr<std::fstream> f_value;
+        std::shared_ptr<std::fstream> f_duty_cycle;
 
-PinData get_data();
+        ChannelInfo(const std::string  &channel,
+                    const std::string  &gpio_chip_dir,
+                    int                 chip_gpio,
+                    int                 gpio,
+                    const std::string  &pwm_chip_dir,
+                    int                 pwm_id)
+            : channel(channel),
+              gpio_chip_dir(gpio_chip_dir),
+              chip_gpio(chip_gpio),
+              gpio(gpio),
+              pwm_chip_dir(pwm_chip_dir),
+              pwm_id(pwm_id),
+              f_direction(std::make_shared<std::fstream>()),
+              f_value(std::make_shared<std::fstream>()),
+              f_duty_cycle(std::make_shared<std::fstream>())
+        {}
+    };
+
+    struct PinData
+    {
+        Model model;
+        PinInfo pin_info;
+        std::map<GPIO::NumberingModes, std::map<std::string, ChannelInfo>> channel_data;
+    };
+
+    PinData get_data();
+
+} // namespace GPIO
 
 #endif // GPIO_PIN_DATA_H

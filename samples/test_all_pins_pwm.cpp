@@ -29,6 +29,7 @@ DEALINGS IN THE SOFTWARE.
 #include <chrono>
 #include <thread>
 #include <map>
+#include <vector>
 #include <string>
 
 // for signal handling
@@ -38,17 +39,21 @@ DEALINGS IN THE SOFTWARE.
 #include <GPIO.h>
 
 using namespace std;
-const map<string, int> output_pins{{"J721E_SK", 29}};
+/* PWM pin details:
+ * Pins 11, 12:         GPIO pins used for SW PWM. Any GPIO pins can be used for SW PWM.
+ * Pins 29, 31, 32, 33: HW PWM pins
+ */
+const map<string, vector<int>> all_pwm_pins{{"J721E_SK", {11,12,29,31,32,33}}};
 
-int get_output_pin()
+vector<int> get_pwn_pins()
 {
-	if (output_pins.find(GPIO::model) == output_pins.end())
+	if (all_pwm_pins.find(GPIO::model) == all_pwm_pins.end())
 	{
 		cerr << "PWM not supported on this board\n";
 		terminate();
 	}
 
-	return output_pins.at(GPIO::model);
+	return all_pwm_pins.at(GPIO::model);
 }
 
 inline void delay(int s)
@@ -66,35 +71,41 @@ void signalHandler(int s)
 int main()
 {
 	// Pin Definitions
-	int output_pin = get_output_pin();
+    vector<int> pwm_pins = get_pwn_pins();
 
 	// When CTRL+C pressed, signalHandler will be called
 	signal(SIGINT, signalHandler);
 
-	// Pin Setup.
-	// Board pin-numbering scheme
-	GPIO::setmode(GPIO::BOARD);
+    GPIO::setwarnings(false);
 
-	// set pin as an output pin with optional initial state of HIGH
-	GPIO::setup(output_pin, GPIO::OUT, GPIO::HIGH);
-	GPIO::PWM p(output_pin, 50);
-	auto val = 25.0;
-	p.start(val);
+    for (auto pin : pwm_pins)
+    {
+        // Pin Setup.
+        // Board pin-numbering scheme
+        GPIO::setmode(GPIO::BOARD);
 
-	cout << "PWM running. Press CTRL+C to exit." << endl;
+        // set pin as an output pin with optional initial state of HIGH
+        GPIO::setup(pin, GPIO::OUT, GPIO::HIGH);
+        GPIO::PWM p(pin, 50);
+        auto val = 25.0;
+        p.start(val);
 
-	while (!end_this_program)
-	{
-		delay(1);
-        p.ChangeDutyCycle(10);
-		delay(1);
-        p.ChangeDutyCycle(75);
-		delay(1);
-        p.ChangeDutyCycle(val);
-	}
+        cout << "Testing PWM pin [" << pin << "]. Press CTRL+C to exit." << endl;
 
-	p.stop();
-	GPIO::cleanup();
+        while (!end_this_program)
+        {
+            delay(1);
+            p.ChangeDutyCycle(10);
+            delay(1);
+            p.ChangeDutyCycle(75);
+            delay(1);
+            p.ChangeDutyCycle(val);
+        }
+
+        p.stop();
+        GPIO::cleanup();
+        end_this_program = false;
+    }
 
 	return 0;
 }
