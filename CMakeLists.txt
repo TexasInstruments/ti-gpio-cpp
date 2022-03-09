@@ -30,6 +30,9 @@ set(TI_GPIO_LIB_SRCS
     src/gpio_event.cpp
     src/gpio_event.h
     src/gpio_pin_data.cpp
+    src/gpio_common.cpp
+    src/gpio_sw_pwm.cpp
+    src/gpio_hw_pwm.cpp
     src/python_functions.cpp)
 
 # Build the library

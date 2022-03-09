@@ -26,6 +26,7 @@ DEALINGS IN THE SOFTWARE.
 // Standard headers
 #include <unistd.h>
 #include <dirent.h>
+#include <algorithm>
 #include <sstream>
 #include <cctype>
 
@@ -34,12 +35,21 @@ DEALINGS IN THE SOFTWARE.
 
 using namespace std;
 
+namespace GPIO
+{
 bool startswith(const string& s, const string& prefix) 
 {
 	size_t pre_size = prefix.size();
 	if (s.size() < pre_size) return false;
 	
 	return prefix == s.substr(0, prefix.size());
+}
+
+std::string lower(const std::string& s)
+{
+    auto copied = s;
+    transform(copied.begin(), copied.end(), copied.begin(), [](unsigned char c) { return tolower(c); });
+    return copied;
 }
 
 vector<string> split(const string& s, const char d)
@@ -127,4 +137,6 @@ bool is_None(const std::string& s)
 {
     return s == "None";
 }
+
+} // namespace GPIO
 

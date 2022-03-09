@@ -81,7 +81,7 @@ function(build_lib)
     set(lib ${ARGV0})
     set(src ${ARGV1})
     set(type ${ARGV2})
-    set(version 0.1.0)
+    set(version 1.0.0)
 
     add_library(${lib} ${type} ${${src}})
 
