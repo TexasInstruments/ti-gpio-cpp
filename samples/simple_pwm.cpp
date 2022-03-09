@@ -38,7 +38,7 @@ DEALINGS IN THE SOFTWARE.
 #include <GPIO.h>
 
 using namespace std;
-const map<string, int> output_pins{{"J721E_SK", 18}};
+const map<string, int> output_pins{{"J721E_SK", 29}};
 
 int get_output_pin()
 {
@@ -62,8 +62,6 @@ void signalHandler(int s)
 {
 	end_this_program = true;
 }
-
-
 
 int main()
 {

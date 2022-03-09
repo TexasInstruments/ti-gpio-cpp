@@ -57,3 +57,6 @@ build_app(simple_pwm SAMPLE_PWM_TEST_SRCS)
 set(ALL_PINS_INPUT_TEST_SRCS samples/test_all_pins_input.cpp)
 build_app(test_all_pins_input ALL_PINS_INPUT_TEST_SRCS)
 
+set(ALL_PWM_PINS_TEST_SRCS samples/test_all_pins_pwm.cpp)
+build_app(test_all_pins_pwm ALL_PWM_PINS_TEST_SRCS)
+
