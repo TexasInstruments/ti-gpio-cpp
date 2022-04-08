@@ -61,20 +61,10 @@ inline void delay(int s)
 	this_thread::sleep_for(chrono::seconds(s));
 }
 
-static bool end_this_program = false;
-
-void signalHandler(int s)
-{
-	end_this_program = true;
-}
-
 int main()
 {
 	// Pin Definitions
     vector<int> pwm_pins = get_pwn_pins();
-
-	// When CTRL+C pressed, signalHandler will be called
-	signal(SIGINT, signalHandler);
 
     GPIO::setwarnings(false);
 
@@ -90,21 +80,17 @@ int main()
         auto val = 25.0;
         p.start(val);
 
-        cout << "Testing PWM pin [" << pin << "]. Press CTRL+C to exit." << endl;
+        cout << "Testing PWM on pin [" << pin << "]" << endl;
 
-        while (!end_this_program)
-        {
-            delay(1);
-            p.ChangeDutyCycle(10);
-            delay(1);
-            p.ChangeDutyCycle(75);
-            delay(1);
-            p.ChangeDutyCycle(val);
-        }
+        delay(1);
+        p.ChangeDutyCycle(10);
+        delay(1);
+        p.ChangeDutyCycle(75);
+        delay(1);
+        p.ChangeDutyCycle(val);
 
         p.stop();
         GPIO::cleanup();
-        end_this_program = false;
     }
 
 	return 0;
