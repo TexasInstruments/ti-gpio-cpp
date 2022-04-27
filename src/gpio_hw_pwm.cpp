@@ -241,13 +241,14 @@ void GpioPwmIfHw::_reconfigure(int frequency_hz, double duty_cycle_percent, bool
 
     m_duty_cycle_percent = duty_cycle_percent;
     m_duty_cycle_ns = int(m_period_ns * (duty_cycle_percent / 100.0));
-    hw_set_pwm_duty_cycle(m_ch_info, m_duty_cycle_ns);
 
     if (stop || start)
     {
         hw_enable_pwm(m_ch_info);
         m_started = true;
     }
+
+    hw_set_pwm_duty_cycle(m_ch_info, m_duty_cycle_ns);
 }
 
 GpioPwmIfHw::~GpioPwmIfHw()
