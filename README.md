@@ -18,9 +18,13 @@ mkdir build
 cd build
 cmake ..
 make
-make install
+make install # This installs by default under /usr/local
+OR
+make install DESTDIR=<path/to/install> # This installs under <path/to/install>
 ```
-The default installation path will be /usr/local/lib64.
+The default installation paths will b as follows.
+Headers: /usr/local/include
+Library: /usr/local/lib64
 
 # Library API
 
@@ -41,7 +45,7 @@ using namespace GPIO; // optional
 
 To compile your program use:
 ```
-g++ -o your_program_name your_source_code.cpp -lpthread -lti_gpio
+g++ -o your_program_name your_source_code.cpp -I<path/to/install>/include -L<path/to/install>/lib64 -lpthread -lti_gpio
 ```
 
 
