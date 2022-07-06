@@ -22,9 +22,10 @@ make install # This installs by default under /usr/local
 OR
 make install DESTDIR=<path/to/install> # This installs under <path/to/install>
 ```
-The default installation paths will b as follows.
-Headers: /usr/local/include
-Library: /usr/local/lib64
+The default installation paths will be as follows.
+
+- **Headers**: /usr/local/**include**
+- **Library**: /usr/local/**lib64**
 
 # Library API
 
