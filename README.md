@@ -18,14 +18,42 @@ mkdir build
 cd build
 cmake ..
 make
-make install # This installs by default under /usr/local
-OR
-make install DESTDIR=<path/to/install> # This installs under <path/to/install>
+make install
 ```
-The default installation paths will be as follows.
+The above installs the library and header files under /usr dirctory. The headers and library will be placed as follows
 
-- **Headers**: /usr/local/**include**
-- **Library**: /usr/local/**lib64**
+- **Headers**: /usr/**include**/
+- **Library**: /usr/**lib**/
+
+The desired install location can be specified as follows
+
+```
+cmake -DCMAKE_INSTALL_PREFIX=<path/to/install> ..
+make -j2
+make install
+```
+
+- **Headers**: path/to/install/**include**/
+- **Library**: path/to/install/**lib**/
+
+## Cross-Compilation for the target
+The library can be cross-compiled on an x86_64 machine for the target. Here are the steps for cross-compilation.
+```
+git clone https://github.com/TexasInstruments/ti-gpio-cpp
+cd ti-gpio-cpp
+# Update cmake/setup_cross_compile.sh to specify tool paths and settings
+mkdir build
+cd build
+source ../cmake/setup_cross_compile.sh
+cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/cross_compile_aarch64.cmake ..
+make -j2
+make install DESTDIR=<path/to/targetfs>
+```
+The library and headers will be placed under the following directory structire. Here we use the default
+'/usr' install prefix and we prepend the tarfetfs directory location
+
+- **Headers**: path/to/targetfs/usr/**include**/
+- **Library**: path/to/targetfs/usr/**lib**/
 
 # Library API
 
@@ -46,7 +74,7 @@ using namespace GPIO; // optional
 
 To compile your program use:
 ```
-g++ -o your_program_name your_source_code.cpp -I<path/to/install>/include -L<path/to/install>/lib64 -lpthread -lti_gpio
+g++ -o your_program_name your_source_code.cpp -I<path/to/install>/include -L<path/to/install>/lib -lpthread -lti_gpio
 ```
 
 
