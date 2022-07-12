@@ -18,45 +18,35 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.16.0)
+cmake_minimum_required(VERSION 3.10.2)
 
 project(ti_gpio)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/common.cmake)
 
-# Get the files that form the core library
-set(TI_GPIO_LIB_SRCS
-    src/gpio.cpp
-    src/gpio_event.cpp
-    src/gpio_event.h
-    src/gpio_pin_data.cpp
-    src/gpio_common.cpp
-    src/gpio_sw_pwm.cpp
-    src/gpio_hw_pwm.cpp
-    src/python_functions.cpp)
-
 # Build the library
-build_lib(${PROJECT_NAME} TI_GPIO_LIB_SRCS STATIC)
+build_lib(${PROJECT_NAME} STATIC 1.0.0
+          src/gpio.cpp
+          src/gpio_event.cpp
+          src/gpio_event.h
+          src/gpio_pin_data.cpp
+          src/gpio_common.cpp
+          src/gpio_sw_pwm.cpp
+          src/gpio_hw_pwm.cpp
+          src/python_functions.cpp)
 
 # Build sample applications
-set(TI_GPIO_TEST_SRCS samples/ti_gpio_test.cpp)
-build_app(ti_gpio_test TI_GPIO_TEST_SRCS)
+build_app(ti_gpio_test samples/ti_gpio_test.cpp)
 
-set(BUTTON_EVT_TEST_SRCS samples/button_event.cpp)
-build_app(button_event BUTTON_EVT_TEST_SRCS)
+build_app(button_event samples/button_event.cpp)
 
-set(BUTTON_INT_TEST_SRCS samples/button_interrupt.cpp)
-build_app(button_interrupt BUTTON_INT_TEST_SRCS)
+build_app(button_interrupt samples/button_interrupt.cpp)
 
-set(SAMPLE_OUT_TEST_SRCS samples/simple_out.cpp)
-build_app(simple_out SAMPLE_OUT_TEST_SRCS)
+build_app(simple_out samples/simple_out.cpp)
 
-set(SAMPLE_PWM_TEST_SRCS samples/simple_pwm.cpp)
-build_app(simple_pwm SAMPLE_PWM_TEST_SRCS)
+build_app(simple_pwm samples/simple_pwm.cpp)
 
-set(ALL_PINS_INPUT_TEST_SRCS samples/test_all_pins_input.cpp)
-build_app(test_all_pins_input ALL_PINS_INPUT_TEST_SRCS)
+build_app(test_all_pins_input samples/test_all_pins_input.cpp)
 
-set(ALL_PWM_PINS_TEST_SRCS samples/test_all_pins_pwm.cpp)
-build_app(test_all_pins_pwm ALL_PWM_PINS_TEST_SRCS)
+build_app(test_all_pins_pwm samples/test_all_pins_pwm.cpp)
 

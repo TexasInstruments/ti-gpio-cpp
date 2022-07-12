@@ -20,11 +20,11 @@
 
 @PACKAGE_INIT@
 
-include("${CMAKE_CURRENT_LIST_DIR}/ti_coreTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/ti_gpioTargets.cmake")
 
-set_and_check(ti_core_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check(ti_gpio_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
 
-set(ti_core_LIBRARIES ti_gpio)
+set(ti_gpio_LIBRARIES ti_gpio)
 
 # This should be at the end of the file
 check_required_components(ti_gpio)
