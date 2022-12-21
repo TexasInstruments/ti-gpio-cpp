@@ -40,10 +40,16 @@ DEALINGS IN THE SOFTWARE.
 
 using namespace std;
 /* PWM pin details:
- * Pins 11, 12:         GPIO pins used for SW PWM. Any GPIO pins can be used for SW PWM.
- * Pins 29, 31, 32, 33: HW PWM pins
+ *
+ * J721E_SK:
+ *  Pins 11,12:       GPIO pins used for SW PWM. Any GPIO pins can be used for SW PWM.
+ *  Pins 29,31,32,33: HW PWM pins
+ *
+ * AM68_SK:
+ *  Pins 11,12,29,31,32,33: GPIO pins used for SW PWM. Any GPIO pins can be used for SW PWM.
  */
-const map<string, vector<int>> all_pwm_pins{{"J721E_SK", {11,12,29,31,32,33}}};
+const map<string, vector<int>> all_pwm_pins{{"J721E_SK", {11,12,29,31,32,33}},
+                                            {"AM68_SK",  {11,12,29,31,32,33}}};
 
 vector<int> get_pwn_pins()
 {

@@ -32,16 +32,20 @@ DEALINGS IN THE SOFTWARE.
 // SOC Models
 enum class Model
 {
-    J721E_SK
+    J721E_SK,
+    AM68_SK
 };
 
 // alias
 constexpr Model J721E_SK = Model::J721E_SK;
+constexpr Model AM68_SK = Model::AM68_SK;
 
 static std::string ModelToString(Model m)
 {
     if(m == Model::J721E_SK) 
         return "J721E_SK";
+    else if(m == Model::AM68_SK) 
+        return "AM68_SK";
     else
         return "None";
 }
