@@ -38,7 +38,8 @@ DEALINGS IN THE SOFTWARE.
 #include <GPIO.h>
 
 using namespace std;
-const map<string, int> output_pins{{"J721E_SK", 29}};
+const map<string, int> output_pins{{"J721E_SK", 29},
+                                   {"AM68_SK", 29}};
 
 int get_output_pin()
 {
