@@ -2,7 +2,7 @@
 Copyright (c) 2012-2017 Ben Croston ben@croston.org.
 Copyright (c) 2019, NVIDIA CORPORATION.
 Copyright (c) 2019 Jueon Park(pjueon) bluegbg@gmail.com.
-Copyright (c) 2021, Texas Instruments Incorporated. All rights reserved.
+Copyright (c) 2021-2023, Texas Instruments Incorporated. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,14 @@ DEALINGS IN THE SOFTWARE.
 enum class Model
 {
     J721E_SK,
-    AM68_SK
+    AM68_SK,
+    AM69_SK
 };
 
 // alias
 constexpr Model J721E_SK = Model::J721E_SK;
 constexpr Model AM68_SK = Model::AM68_SK;
+constexpr Model AM69_SK = Model::AM69_SK;
 
 static std::string ModelToString(Model m)
 {
@@ -46,6 +48,8 @@ static std::string ModelToString(Model m)
         return "J721E_SK";
     else if(m == Model::AM68_SK) 
         return "AM68_SK";
+    else if(m == Model::AM69_SK) 
+        return "AM69_SK";
     else
         return "None";
 }
