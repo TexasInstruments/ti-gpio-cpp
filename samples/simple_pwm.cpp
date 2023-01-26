@@ -2,7 +2,7 @@
 Copyright (c) 2012-2017 Ben Croston ben@croston.org.
 Copyright (c) 2019, NVIDIA CORPORATION.
 Copyright (c) 2019 Jueon Park(pjueon) bluegbg@gmail.com.
-Copyright (c) 2021, Texas Instruments Incorporated. All rights reserved.
+Copyright (c) 2021-2023, Texas Instruments Incorporated. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,9 @@ DEALINGS IN THE SOFTWARE.
 
 using namespace std;
 const map<string, int> output_pins{{"J721E_SK", 29},
-                                   {"AM68_SK", 29}};
+                                   {"AM68_SK", 29},
+                                   {"AM69_SK", 29}
+                                  };
 
 int get_output_pin()
 {

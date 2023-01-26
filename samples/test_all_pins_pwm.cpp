@@ -2,7 +2,7 @@
 Copyright (c) 2012-2017 Ben Croston ben@croston.org.
 Copyright (c) 2019, NVIDIA CORPORATION.
 Copyright (c) 2019 Jueon Park(pjueon) bluegbg@gmail.com.
-Copyright (c) 2021, Texas Instruments Incorporated. All rights reserved.
+Copyright (c) 2021-2023, Texas Instruments Incorporated. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -47,9 +47,14 @@ using namespace std;
  *
  * AM68_SK:
  *  Pins 11,12,29,31,32,33: GPIO pins used for SW PWM. Any GPIO pins can be used for SW PWM.
+ *
+ * AM69_SK:
+ *  Pins 11,12,29,31,32,33: GPIO pins used for SW PWM. Any GPIO pins can be used for SW PWM.
  */
 const map<string, vector<int>> all_pwm_pins{{"J721E_SK", {11,12,29,31,32,33}},
-                                            {"AM68_SK",  {11,12,29,31,32,33}}};
+                                            {"AM68_SK",  {11,12,29,31,32,33}},
+                                            {"AM69_SK",  {11,12,29,31,32,33}}
+                                           };
 
 vector<int> get_pwn_pins()
 {
