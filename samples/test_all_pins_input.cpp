@@ -38,34 +38,31 @@ struct TestPinData
 
 const TestPinData j721e_pin_data =
 {
-    {7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26, 35, 36, 37, 38, 40},
-    {4, 14, 15, 17, 18, 27, 22, 23, 24, 10, 9, 25, 11, 8, 7, 19, 16, 26, 20, 21},
-    {"GPIO0_7", "GPIO0_70", "GPIO0_81", "GPIO0_71", "GPIO0_1", "GPIO0_82",
-     "GPIO0_11", "GPIO0_5", "GPIO0_12", "GPIO0_101", "GPIO0_107", "GPIO0_8",
-     "GPIO0_103", "GPIO0_102", "GPIO0_108", "GPIO0_2", "GPIO0_97", "GPIO0_115",
-     "GPIO0_3", "GPIO0_4"}
+    {7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,35,36,37,38,40},
+    {4,14,15,17,18,27,22,23,24,10,9,25,11,8,7,19,16,26,20,21},
+    {"GPIO0_7","GPIO0_70","GPIO0_81","GPIO0_71","GPIO0_1","GPIO0_82",
+     "GPIO0_11","GPIO0_5","GPIO0_12","GPIO0_101","GPIO0_107","GPIO0_8",
+     "GPIO0_103","GPIO0_102","GPIO0_108","GPIO0_2","GPIO0_97","GPIO0_115",
+     "GPIO0_3","GPIO0_4"
+    }
 };
 
 const TestPinData am68a_pin_data =
 {
-    {7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26, 35, 36, 37, 38, 40},
-    {4, 14, 15, 17, 18, 27, 22, 23, 24, 10, 9, 25, 11, 8, 7, 19, 16, 26, 20, 21},
-    {"WKUP_GPIO0_87", "WKUP_GPIO0_65", "WKUP_GPIO0_66", "GPIO0_1", "GPIO0_2",
-     "GPIO0_42", "GPIO0_46", "GPIO0_36", "GPIO0_49", "GPIO0_3", "GPIO0_13",
-     "WKUP_GPIO0_1", "WKUP_GPIO0_2", "WKUP_GPIO0_67", "WKUP_GPIO0_0",
-     "WKUP_GPIO0_3", "WKUP_GPIO0_15", "WKUP_GPIO0_56", "WKUP_GPIO0_57", "GPIO0_35",
-     "GPIO0_51", "GPIO0_47", "GPIO0_41", "GPIO0_27", "GPIO0_48", "GPIO0_45"}
+    {8,10,11,12,13,16,18,35,37,38,40},
+    {14,15,17,18,27,23,24,19,26,20,21},
+    {"GPIO0_1","GPIO0_2","GPIO0_42","GPIO0_46","GPIO0_36","GPIO0_3",
+     "GPIO0_13","GPIO0_47","GPIO0_27","GPIO0_48","GPIO0_45"
+    }
 };
 
 const TestPinData am69a_pin_data =
 {
-    {7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26, 35, 36, 37, 38, 40},
-    {4, 14, 15, 17, 18, 27, 22, 23, 24, 10, 9, 25, 11, 8, 7, 19, 16, 26, 20, 21},
-    {"WKUP_GPIO0_87", "WKUP_GPIO0_65", "WKUP_GPIO0_66", "GPIO0_1", "GPIO0_2",
-     "GPIO0_42", "GPIO0_46", "GPIO0_36", "GPIO0_49", "GPIO0_3", "GPIO0_13",
-     "WKUP_GPIO0_1", "WKUP_GPIO0_2", "WKUP_GPIO0_67", "WKUP_GPIO0_0",
-     "WKUP_GPIO0_3", "WKUP_GPIO0_15", "WKUP_GPIO0_56", "WKUP_GPIO0_57", "GPIO0_35",
-     "GPIO0_51", "GPIO0_47", "GPIO0_41", "GPIO0_27", "GPIO0_48", "GPIO0_45"}
+    {8,10,11,12,13,16,18,35,37,38,40},
+    {14,15,17,18,27,23,24,19,26,20,21},
+    {"GPIO0_1","GPIO0_2","GPIO0_42","GPIO0_46","GPIO0_36","GPIO0_3",
+     "GPIO0_13","GPIO0_47","GPIO0_27","GPIO0_48","GPIO0_45"
+    }
 };
 
 static map<GPIO::NumberingModes, string> board_mode =
