@@ -69,6 +69,9 @@ public:
     const vector<PinDefinition> AM69_SK_PIN_DEFS;
     const vector<string> compats_am69sk;
 
+    const vector<PinDefinition> AM62A_SK_PIN_DEFS;
+    const vector<string> compats_am62ask;
+
     const map<Model, vector<PinDefinition>> PIN_DEFS_MAP;
     const map<Model, PinInfo> DEVICE_INFO_MAP;
 
@@ -85,7 +88,7 @@ public:
 
 
 EntirePinData::EntirePinData()
-    : 
+    :
     J721E_SK_PIN_DEFS
     {
     //  OFFSET  Sysfs_dir   BOARD   BCM  SOC_NAME   PWM_SysFs     PWM_Id
@@ -191,17 +194,54 @@ EntirePinData::EntirePinData()
         "ti,am69-sk",
         "ti,j784s4"
     },
+    AM62A_SK_PIN_DEFS
+    {
+    //  OFFSET  Sysfs_dir     BOARD   BCM   SOC_NAME      PWM_SysFs PWM_Id
+        {44, "600000.gpio",  "3",  "2", "GPIO0_44", "None", -1},
+        {43, "600000.gpio",    "5",  "3", "GPIO0_43", "None", -1},
+        {30, "601000.gpio",  "7",  "4", "GPIO1_30", "None", -1},
+        {25, "601000.gpio",    "8", "14", "GPIO1_25", "None", -1},
+        {24, "601000.gpio",   "10", "15", "GPIO1_24", "None", -1},
+        {11, "601000.gpio",   "11", "17", "GPIO1_11", "None", -1},
+        {14, "601000.gpio",   "12", "18", "GPIO1_14", "23000000.pwm", 1},
+        {42, "600000.gpio",   "13", "27", "GPIO0_42", "None", -1},
+        {22, "601000.gpio", "15", "22", "GPIO1_22", "None", -1},
+        {38, "600000.gpio",   "16", "23", "GPIO0_38", "None", -1},
+        {39, "600000.gpio",   "18", "24", "GPIO0_39", "None", -1},
+        {18, "601000.gpio", "19", "10", "GPIO1_18",  "None", -1},
+        {19, "601000.gpio", "21",  "9", "GPIO1_19",  "None", -1},
+        {14, "600000.gpio", "22", "25", "GPIO0_14", "None", -1},
+        {17, "601000.gpio", "23", "11", "GPIO1_17",  "None", -1},
+        {15, "601000.gpio", "24",  "8", "GPIO1_15",  "None", -1},
+        {16, "601000.gpio", "26",  "7", "GPIO1_16", "None", -1},
+        {36, "600000.gpio", "29",  "5", "GPIO0_36", "None", -1},
+        {33, "600000.gpio", "31",  "6", "GPIO0_33", "None", -1},
+        {40, "600000.gpio",   "32", "12", "GPIO0_40", "None", -1},
+        {10, "601000.gpio",   "33", "13", "GPIO1_10", "23010000.pwm", 1},
+        {13, "601000.gpio",   "35", "19", "GPIO1_13", "23000000.pwm", 0},
+        {9, "601000.gpio",   "36", "16", "GPIO1_09",  "23010000.pwm", 0},
+        {41, "600000.gpio",   "37", "26", "GPIO0_41", "None", -1},
+        {8, "601000.gpio",   "38", "20", "GPIO1_08", "None", -1},
+        {7, "601000.gpio",   "40", "21", "GPIO1_07", "None", -1}
+    },
+    compats_am62ask
+    {
+        "ti,am62a7-sk",
+        "ti,am62a7"
+    },
     PIN_DEFS_MAP
     {
         { J721E_SK, J721E_SK_PIN_DEFS },
         { AM68_SK,  AM68_SK_PIN_DEFS },
-        { AM69_SK,  AM69_SK_PIN_DEFS }
+        { AM69_SK,  AM69_SK_PIN_DEFS },
+        { AM62A_SK, AM62A_SK_PIN_DEFS }
     },
     DEVICE_INFO_MAP
     {
         { J721E_SK, {1, "8192M", "Unknown", "J721e SK", "TI", "ARM A72"} },
         { AM68_SK,  {1, "8192M", "Unknown", "AM68 SK", "TI", "ARM A72"} },
-        { AM69_SK,  {1, "8192M", "Unknown", "AM69 SK", "TI", "ARM A72"} }
+        { AM69_SK,  {1, "8192M", "Unknown", "AM69 SK", "TI", "ARM A72"} },
+        { AM62A_SK,  {1, "8192M", "Unknown", "AM62A SK", "TI", "ARM A53"} }
     }
 {};
 
@@ -229,11 +269,11 @@ PinData get_data()
             copy(_vec_compatibles.begin(), _vec_compatibles.end(), inserter(compatibles, compatibles.end()));
         } // scope ends
 
-        auto matches = [&compatibles](const vector<string>& vals) 
+        auto matches = [&compatibles](const vector<string>& vals)
         {
             for(const auto& v : vals)
             {
-                if(is_in(v, compatibles)) 
+                if(is_in(v, compatibles))
                     return true;
             }
             return false;
@@ -297,6 +337,11 @@ PinData get_data()
         {
             model = AM69_SK;
         }
+        else if (matches(_DATA.compats_am62ask))
+        {
+            model = AM62A_SK;
+        }
+
         else
         {
             throw runtime_error("Could not determine SOC model");
@@ -312,7 +357,8 @@ PinData get_data()
         vector<string> sysfs_prefixes = {"/sys/devices/",
                                          "/sys/devices/platform/",
                                          "/sys/devices/platform/bus@100000/",
-                                         "/sys/devices/platform/bus@100000/bus@100000:bus@28380000/"};
+                                         "/sys/devices/platform/bus@100000/bus@100000:bus@28380000/",
+                                         "/sys/devices/platform/bus@f0000/"};
 
         // Get the gpiochip offsets
         set<string> gpio_chip_names{};
@@ -360,7 +406,7 @@ PinData get_data()
         auto global_gpio_id = [&gpio_chip_base](string gpio_chip_name, int chip_relative_id) -> int
         {
             if (is_None(gpio_chip_name) ||
-                !is_in(gpio_chip_name, gpio_chip_base) || 
+                !is_in(gpio_chip_name, gpio_chip_base) ||
                 chip_relative_id == -1)
                 return -1;
             return gpio_chip_base[gpio_chip_name] + chip_relative_id;
@@ -420,21 +466,21 @@ PinData get_data()
             for (const auto& x : pin_defs)
             {
                 string pinName = x.PinName(key);
-                
+
                 if(!is_in(x.SysfsDir, gpio_chip_dirs))
                     throw std::runtime_error("[model_data]"s + x.SysfsDir + " is not in gpio_chip_dirs"s);
 
                 ret.insert(
-                    { 
+                    {
                         pinName,
                         ChannelInfo
-                        { 
+                        {
                             pinName,
                             gpio_chip_dirs.at(x.SysfsDir),
                             x.LinuxPin,
                             global_gpio_id(x.SysfsDir, x.LinuxPin),
                             get_or(pwm_dirs, x.PWMSysfsDir, "None"),
-                            x.PWMID 
+                            x.PWMID
                         }
                     }
                 );

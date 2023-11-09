@@ -40,7 +40,8 @@ DEALINGS IN THE SOFTWARE.
 using namespace std;
 const map<string, int> output_pins{{"J721E_SK", 29},
                                    {"AM68_SK", 32},
-                                   {"AM69_SK", 32}
+                                   {"AM69_SK", 32},
+                                   {"AM62A_SK",12}
                                   };
 
 int get_output_pin()
