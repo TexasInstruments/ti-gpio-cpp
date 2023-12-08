@@ -34,10 +34,10 @@ DEALINGS IN THE SOFTWARE.
 #include <type_traits>
 #include <functional>
 
-#if (__cplusplus < 201703L) 
+#if (__cplusplus < 201703L)
 // if C++17 is not supported,
 
-namespace std 
+namespace std
 {
     template <class...>
     using void_t = void;
@@ -49,7 +49,7 @@ namespace std
 
 namespace GPIO
 {
-   constexpr auto VERSION = "1.1.0";
+   constexpr auto VERSION = "1.2.0";
 
    extern const std::string BOARD_INFO;
    extern const std::string model;
@@ -132,10 +132,10 @@ namespace GPIO
    struct is_equality_comparable : std::false_type{};
 
    template<class T>
-   struct is_equality_comparable<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>> 
+   struct is_equality_comparable<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
        : std::is_convertible<decltype(std::declval<T>() == std::declval<T>()), bool>
-   {};   
-   
+   {};
+
    template<class T>
    constexpr bool is_equality_comparable_v = is_equality_comparable<T>::value;
 
@@ -149,7 +149,7 @@ namespace GPIO
    private:
       using func_t = std::function<void(int)>;
 
-      template <class T> 
+      template <class T>
       static bool comparer_impl(const func_t& A, const func_t& B)
       {
          static_assert(is_equality_comparable_v<const T&>,
