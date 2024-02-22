@@ -74,6 +74,16 @@ const TestPinData am62a_pin_data =
     }
 };
 
+const TestPinData am62p_pin_data =
+{
+    {8,10,11,13,15,16,18,19,21,22,23,29,31,32,37},
+    {14,15,17,27,22,23,24,10,9,25,11,5,6,12,26},
+    {"GPIO1_25","GPIO1_24","GPIO1_11","GPIO0_42","GPIO1_22",
+     "GPIO0_38","GPIO0_39","GPIO1_18","GPIO1_19","GPIO0_14",
+     "GPIO1_17","GPIO0_36","GPIO0_33","GPIO0_40","GPIO0_41"
+    }
+};
+
 static map<GPIO::NumberingModes, string> board_mode =
 {
     {GPIO::BOARD, "GPIO::BOARD"},
@@ -92,7 +102,8 @@ const map<string, const TestPinData*> gPin_data =
     {"J721E_SK", &j721e_pin_data},
     {"AM68_SK",  &am68a_pin_data},
     {"AM69_SK",  &am69a_pin_data},
-    {"AM62A_SK", &am62a_pin_data}
+    {"AM62A_SK", &am62a_pin_data},
+    {"AM62P_SK", &am62p_pin_data}
 };
 
 template <typename T>
