@@ -49,78 +49,82 @@ using namespace std::string_literals; // enables s-suffix for std::string litera
 
 namespace GPIO
 {
-// Global variables are wrapped in singleton pattern in order to avoid
-// initialization order of global variables in different compilation units problem
-class EntirePinData
-{
-private:
-    EntirePinData();
+    /*
+    Global variables are wrapped in singleton pattern in order to avoid
+    initialization order of global variables in different compilation units problem
+    */
 
-public:
-    /* These vectors contain all the relevant GPIO data for each Platform.
-    The values are use to generate dictionaries that map the corresponding pin
-    mode numbers to the Linux GPIO pin number and GPIO chip directory */
-    const vector<PinDefinition> J721E_SK_PIN_DEFS;
-    const vector<string> compats_j721e;
-
-    const vector<PinDefinition> AM68_SK_PIN_DEFS;
-    const vector<string> compats_am68sk;
-
-    const vector<PinDefinition> AM69_SK_PIN_DEFS;
-    const vector<string> compats_am69sk;
-
-    const vector<PinDefinition> AM62A_SK_PIN_DEFS;
-    const vector<string> compats_am62ask;
-
-    const vector<PinDefinition> AM62P_SK_PIN_DEFS;
-    const vector<string> compats_am62psk;
-
-    const map<Model, vector<PinDefinition>> PIN_DEFS_MAP;
-    const map<Model, PinInfo> DEVICE_INFO_MAP;
-
-    EntirePinData(const EntirePinData &) = delete;
-    EntirePinData &operator=(const EntirePinData &) = delete;
-    ~EntirePinData() = default;
-
-    static EntirePinData &get_instance()
+    class EntirePinData
     {
-        static EntirePinData singleton{};
-        return singleton;
-    }
-};
+    private:
+        EntirePinData();
+
+    public:
+
+        /*
+        These vectors contain all the relevant GPIO data for each Platform.
+        The values are use to generate dictionaries that map the corresponding pin
+        mode numbers to the Linux GPIO pin number and GPIO chip directory
+        */
+
+        const vector<PinDefinition> J721E_SK_PIN_DEFS;
+        const vector<string> compats_j721e;
+
+        const vector<PinDefinition> AM68_SK_PIN_DEFS;
+        const vector<string> compats_am68sk;
+
+        const vector<PinDefinition> AM69_SK_PIN_DEFS;
+        const vector<string> compats_am69sk;
+
+        const vector<PinDefinition> AM62A_SK_PIN_DEFS;
+        const vector<string> compats_am62ask;
+
+        const map<Model, vector<PinDefinition>> PIN_DEFS_MAP;
+        const map<Model, PinInfo> DEVICE_INFO_MAP;
+
+        EntirePinData(const EntirePinData &) = delete;
+        EntirePinData &operator=(const EntirePinData &) = delete;
+        ~EntirePinData() = default;
+
+        static EntirePinData &get_instance()
+        {
+            static EntirePinData singleton{};
+            return singleton;
+        }
+    };
 
 
 EntirePinData::EntirePinData()
     :
     J721E_SK_PIN_DEFS
     {
-    //  OFFSET  Sysfs_dir   BOARD   BCM  SOC_NAME   PWM_SysFs     PWM_Id
-        { 84, "600000.gpio",  "3",  "2", "GPIO0_84",  "None",        -1},
-        { 83, "600000.gpio",  "5",  "3", "GPIO0_83",  "None",        -1},
-        {  7, "600000.gpio",  "7",  "4", "GPIO0_7",   "None",        -1},
-        { 70, "600000.gpio",  "8", "14", "GPIO0_70",  "None",        -1},
-        { 81, "600000.gpio", "10", "15", "GPIO0_81",  "None",        -1},
-        { 71, "600000.gpio", "11", "17", "GPIO0_71",  "None",        -1},
-        {  1, "600000.gpio", "12", "18", "GPIO0_1",   "None",        -1},
-        { 82, "600000.gpio", "13", "27", "GPIO0_82",  "None",        -1},
-        { 11, "600000.gpio", "15", "22", "GPIO0_11",  "None",        -1},
-        {  5, "600000.gpio", "16", "23", "GPIO0_5",   "None",        -1},
-        { 12, "601000.gpio", "18", "24", "GPIO0_12",  "None",        -1},
-        {101, "600000.gpio", "19", "10", "GPIO0_101", "None",        -1},
-        {107, "600000.gpio", "21",  "9", "GPIO0_107", "None",        -1},
-        {  8, "600000.gpio", "22", "25", "GPIO0_8",   "None",        -1},
-        {103, "600000.gpio", "23", "11", "GPIO0_103", "None",        -1},
-        {102, "600000.gpio", "24",  "8", "GPIO0_102", "None",        -1},
-        {108, "600000.gpio", "26",  "7", "GPIO0_108", "None",        -1},
-        { 93, "600000.gpio", "29",  "5", "GPIO0_93",  "3020000.pwm",  0},
-        { 94, "600000.gpio", "31",  "6", "GPIO0_94",  "3020000.pwm",  1},
-        { 98, "600000.gpio", "32", "12", "GPIO0_98",  "3030000.pwm",  0},
-        { 99, "600000.gpio", "33", "13", "GPIO0_99",  "3030000.pwm",  1},
-        {  2, "600000.gpio", "35", "19", "GPIO0_2",   "None",        -1},
-        { 97, "600000.gpio", "36", "16", "GPIO0_97",  "None",        -1},
-        {115, "600000.gpio", "37", "26", "GPIO0_115", "None",        -1},
-        {  3, "600000.gpio", "38", "20", "GPIO0_3",   "None",        -1},
-        {  4, "600000.gpio", "40", "21", "GPIO0_4",   "None",        -1}
+    //  GPIOCHIP_X  Sysfs_dir   BOARD   BCM  SOC_NAME   PWM_SysFs     PWM_Id
+        {3, 84, "600000.gpio",  "3",  "2", "GPIO0_84",  "None",        -1},
+        {3, 83, "600000.gpio",  "5",  "3", "GPIO0_83",  "None",        -1},
+        {3, 7, "600000.gpio",  "7",  "4", "GPIO0_7",   "None",        -1},
+        {3, 70, "600000.gpio",  "8", "14", "GPIO0_70",  "None",        -1},
+        {3, 81, "600000.gpio", "10", "15", "GPIO0_81",  "None",        -1},
+        {3, 71, "600000.gpio", "11", "17", "GPIO0_71",  "None",        -1},
+        {3, 1, "600000.gpio", "12", "18", "GPIO0_1",   "None",        -1},
+        {3, 82, "600000.gpio", "13", "27", "GPIO0_82",  "None",        -1},
+        {3, 11, "600000.gpio", "15", "22", "GPIO0_11",  "None",        -1},
+        {3, 5, "600000.gpio", "16", "23", "GPIO0_5",   "None",        -1},
+        {3, 12, "601000.gpio", "18", "24", "GPIO0_12",  "None",        -1},
+        {3, 101, "600000.gpio", "19", "10", "GPIO0_101", "None",        -1},
+        {3, 107, "600000.gpio", "21",  "9", "GPIO0_107", "None",        -1},
+        {3, 8, "600000.gpio", "22", "25", "GPIO0_8",   "None",        -1},
+        {3, 103, "600000.gpio", "23", "11", "GPIO0_103", "None",        -1},
+        {3, 102, "600000.gpio", "24",  "8", "GPIO0_102", "None",        -1},
+        {3, 108, "600000.gpio", "26",  "7", "GPIO0_108", "None",        -1},
+        {3, 93, "600000.gpio", "29",  "5", "GPIO0_93",  "3020000.pwm",  0},
+        {3, 94, "600000.gpio", "31",  "6", "GPIO0_94",  "3020000.pwm",  1},
+        {3, 98, "600000.gpio", "32", "12", "GPIO0_98",  "3030000.pwm",  0},
+        {3, 99, "600000.gpio", "33", "13", "GPIO0_99",  "3030000.pwm",  1},
+        {3, 2, "600000.gpio", "35", "19", "GPIO0_2",   "None",        -1},
+        {3, 97, "600000.gpio", "36", "16", "GPIO0_97",  "None",        -1},
+        {3, 115, "600000.gpio", "37", "26", "GPIO0_115", "None",        -1},
+        {3, 3, "600000.gpio", "38", "20", "GPIO0_3",   "None",        -1},
+        {3, 4, "600000.gpio", "40", "21", "GPIO0_4",   "None",        -1}
     },
     compats_j721e
     {
@@ -129,33 +133,33 @@ EntirePinData::EntirePinData()
     },
     AM68_SK_PIN_DEFS
     {
-    //  OFFSET  Sysfs_dir      BOARD   BCM  SOC_NAME      PWM_SysFs PWM_Id
-        { 4, "600000.gpio",    "3",  "2", "GPIO0_4",       "None", -1},
-        { 5, "600000.gpio",    "5",  "3", "GPIO0_5",       "None", -1},
-        {66, "42110000.gpio",  "7",  "4", "WKUP_GPIO0_66", "None", -1},
-        { 1, "600000.gpio",    "8", "14", "GPIO0_1",       "None", -1},
-        { 2, "600000.gpio",   "10", "15", "GPIO0_2",       "None", -1},
-        {42, "600000.gpio",   "11", "17", "GPIO0_42",      "None", -1},
-        {46, "600000.gpio",   "12", "18", "GPIO0_46",      "None", -1},
-        {36, "600000.gpio",   "13", "27", "GPIO0_36",      "None", -1},
-        {49, "42110000.gpio", "15", "22", "WKUP_GPIO0_49", "None", -1},
-        { 3, "600000.gpio",   "16", "23", "GPIO0_3",       "None", -1},
-        {13, "600000.gpio",   "18", "24", "GPIO0_13",      "None", -1},
-        { 1, "42110000.gpio", "19", "10", "WKUP_GPIO0_1",  "None", -1},
-        { 2, "42110000.gpio", "21",  "9", "WKUP_GPIO0_2",  "None", -1},
-        {67, "42110000.gpio", "22", "25", "WKUP_GPIO0_67", "None", -1},
-        { 0, "42110000.gpio", "23", "11", "WKUP_GPIO0_0",  "None", -1},
-        { 3, "42110000.gpio", "24",  "8", "WKUP_GPIO0_3",  "None", -1},
-        {15, "42110000.gpio", "26",  "7", "WKUP_GPIO0_15", "None", -1},
-        {56, "42110000.gpio", "29",  "5", "WKUP_GPIO0_56", "None", -1},
-        {57, "42110000.gpio", "31",  "6", "WKUP_GPIO0_57", "None", -1},
-        {35, "600000.gpio",   "32", "12", "GPIO0_35",      "3030000.pwm", 0},
-        {51, "600000.gpio",   "33", "13", "GPIO0_51",      "3000000.pwm", 0},
-        {47, "600000.gpio",   "35", "19", "GPIO0_47",      "None", -1},
-        {41, "600000.gpio",   "36", "16", "GPIO0_41",      "3040000.pwm", 0},
-        {27, "600000.gpio",   "37", "26", "GPIO0_27",      "None", -1},
-        {48, "600000.gpio",   "38", "20", "GPIO0_48",      "None", -1},
-        {45, "600000.gpio",   "40", "21", "GPIO0_45",      "None", -1}
+    //  GPIOCHIP_X  Sysfs_dir      BOARD   BCM  SOC_NAME      PWM_SysFs PWM_Id
+        {3, 4, "600000.gpio",    "3",  "2", "GPIO0_4",       "None", -1},
+        {3, 5, "600000.gpio",    "5",  "3", "GPIO0_5",       "None", -1},
+        {3, 66, "42110000.gpio",  "7",  "4", "WKUP_GPIO0_66", "None", -1},
+        {3, 1, "600000.gpio",    "8", "14", "GPIO0_1",       "None", -1},
+        {3, 2, "600000.gpio",   "10", "15", "GPIO0_2",       "None", -1},
+        {3, 42, "600000.gpio",   "11", "17", "GPIO0_42",      "None", -1},
+        {3, 46, "600000.gpio",   "12", "18", "GPIO0_46",      "None", -1},
+        {3, 36, "600000.gpio",   "13", "27", "GPIO0_36",      "None", -1},
+        {3, 49, "42110000.gpio", "15", "22", "WKUP_GPIO0_49", "None", -1},
+        {3, 3, "600000.gpio",   "16", "23", "GPIO0_3",       "None", -1},
+        {3, 13, "600000.gpio",   "18", "24", "GPIO0_13",      "None", -1},
+        {3, 1, "42110000.gpio", "19", "10", "WKUP_GPIO0_1",  "None", -1},
+        {3, 2, "42110000.gpio", "21",  "9", "WKUP_GPIO0_2",  "None", -1},
+        {3, 67, "42110000.gpio", "22", "25", "WKUP_GPIO0_67", "None", -1},
+        {3, 0, "42110000.gpio", "23", "11", "WKUP_GPIO0_0",  "None", -1},
+        {3, 3, "42110000.gpio", "24",  "8", "WKUP_GPIO0_3",  "None", -1},
+        {3, 15, "42110000.gpio", "26",  "7", "WKUP_GPIO0_15", "None", -1},
+        {3, 56, "42110000.gpio", "29",  "5", "WKUP_GPIO0_56", "None", -1},
+        {3, 57, "42110000.gpio", "31",  "6", "WKUP_GPIO0_57", "None", -1},
+        {3, 35, "600000.gpio",   "32", "12", "GPIO0_35",      "3030000.pwm", 0},
+        {3, 51, "600000.gpio",   "33", "13", "GPIO0_51",      "3000000.pwm", 0},
+        {3, 47, "600000.gpio",   "35", "19", "GPIO0_47",      "None", -1},
+        {3, 41, "600000.gpio",   "36", "16", "GPIO0_41",      "3040000.pwm", 0},
+        {3, 27, "600000.gpio",   "37", "26", "GPIO0_27",      "None", -1},
+        {3, 48, "600000.gpio",   "38", "20", "GPIO0_48",      "None", -1},
+        {3, 45, "600000.gpio",   "40", "21", "GPIO0_45",      "None", -1}
     },
     compats_am68sk
     {
@@ -164,33 +168,33 @@ EntirePinData::EntirePinData()
     },
     AM69_SK_PIN_DEFS
     {
-    //  OFFSET  Sysfs_dir     BOARD   BCM   SOC_NAME      PWM_SysFs PWM_Id
-        {87, "42110000.gpio",  "3",  "2", "WKUP_GPIO0_87", "None", -1},
-        {65, "600000.gpio",    "5",  "3", "WKUP_GPIO0_65", "None", -1},
-        {66, "42110000.gpio",  "7",  "4", "WKUP_GPIO0_66", "None", -1},
-        { 1, "600000.gpio",    "8", "14", "GPIO0_1",       "None", -1},
-        { 2, "600000.gpio",   "10", "15", "GPIO0_2",       "None", -1},
-        {42, "600000.gpio",   "11", "17", "GPIO0_42",      "None", -1},
-        {46, "600000.gpio",   "12", "18", "GPIO0_46",      "None", -1},
-        {36, "600000.gpio",   "13", "27", "GPIO0_36",      "None", -1},
-        {49, "42110000.gpio", "15", "22", "WKUP_GPIO0_49", "None", -1},
-        { 3, "600000.gpio",   "16", "23", "GPIO0_3",       "None", -1},
-        {13, "600000.gpio",   "18", "24", "GPIO0_13",      "None", -1},
-        { 1, "42110000.gpio", "19", "10", "WKUP_GPIO0_1",  "None", -1},
-        { 2, "42110000.gpio", "21",  "9", "WKUP_GPIO0_2",  "None", -1},
-        {67, "42110000.gpio", "22", "25", "WKUP_GPIO0_67", "None", -1},
-        { 0, "42110000.gpio", "23", "11", "WKUP_GPIO0_0",  "None", -1},
-        { 3, "42110000.gpio", "24",  "8", "WKUP_GPIO0_3",  "None", -1},
-        {15, "42110000.gpio", "26",  "7", "WKUP_GPIO0_15", "None", -1},
-        {56, "42110000.gpio", "29",  "5", "WKUP_GPIO0_56", "None", -1},
-        {57, "42110000.gpio", "31",  "6", "WKUP_GPIO0_57", "None", -1},
-        {35, "600000.gpio",   "32", "12", "GPIO0_35",      "3030000.pwm", 0},
-        {51, "600000.gpio",   "33", "13", "GPIO0_51",      "3000000.pwm", 0},
-        {47, "600000.gpio",   "35", "19", "GPIO0_47",      "None", -1},
-        {41, "600000.gpio",   "36", "16", "GPIO0_41",      "3040000.pwm", 0},
-        {27, "600000.gpio",   "37", "26", "GPIO0_27",      "None", -1},
-        {48, "600000.gpio",   "38", "20", "GPIO0_48",      "None", -1},
-        {45, "600000.gpio",   "40", "21", "GPIO0_45",      "None", -1}
+    //  GPIOCHIP_X  OFFSET  Sysfs_dir  BOARD   BCM   SOC_NAME   PWM_SysFs PWM_Id
+        {2, 87, "42110000.gpio",  "3",  "2", "WKUP_GPIO0_87", "None", -1},
+        {3, 65, "600000.gpio",    "5",  "3", "WKUP_GPIO0_65", "None", -1},
+        {2, 66, "42110000.gpio",  "7",  "4", "WKUP_GPIO0_66", "None", -1},
+        {3, 1,  "600000.gpio",    "8", "14", "GPIO0_1",       "None", -1},
+        {3, 2,  "600000.gpio",   "10", "15", "GPIO0_2",       "None", -1},
+        {3, 42, "600000.gpio",   "11", "17", "GPIO0_42",      "None", -1},
+        {3, 46, "600000.gpio",   "12", "18", "GPIO0_46",      "None", -1},
+        {3, 36, "600000.gpio",   "13", "27", "GPIO0_36",      "None", -1},
+        {2, 49, "42110000.gpio", "15", "22", "WKUP_GPIO0_49", "None", -1},
+        {3, 3,  "600000.gpio",   "16", "23", "GPIO0_3",       "None", -1},
+        {3, 13, "600000.gpio",   "18", "24", "GPIO0_13",      "None", -1},
+        {2, 1,  "42110000.gpio", "19", "10", "WKUP_GPIO0_1",  "None", -1},
+        {2, 2,  "42110000.gpio", "21",  "9", "WKUP_GPIO0_2",  "None", -1},
+        {2, 67, "42110000.gpio", "22", "25", "WKUP_GPIO0_67", "None", -1},
+        {2, 0,  "42110000.gpio", "23", "11", "WKUP_GPIO0_0",  "None", -1},
+        {2, 3,  "42110000.gpio", "24",  "8", "WKUP_GPIO0_3",  "None", -1},
+        {2, 15, "42110000.gpio", "26",  "7", "WKUP_GPIO0_15", "None", -1},
+        {2, 56, "42110000.gpio", "29",  "5", "WKUP_GPIO0_56", "None", -1},
+        {2, 57, "42110000.gpio", "31",  "6", "WKUP_GPIO0_57", "None", -1},
+        {3, 35, "600000.gpio",   "32", "12", "GPIO0_35",      "3030000.pwm", 0},
+        {3, 51, "600000.gpio",   "33", "13", "GPIO0_51",      "3000000.pwm", 0},
+        {3, 47, "600000.gpio",   "35", "19", "GPIO0_47",      "None", -1},
+        {3, 41, "600000.gpio",   "36", "16", "GPIO0_41",      "3040000.pwm", 0},
+        {3, 27, "600000.gpio",   "37", "26", "GPIO0_27",      "None", -1},
+        {3, 48, "600000.gpio",   "38", "20", "GPIO0_48",      "None", -1},
+        {3, 45, "600000.gpio",   "40", "21", "GPIO0_45",      "None", -1}
     },
     compats_am69sk
     {
@@ -199,33 +203,33 @@ EntirePinData::EntirePinData()
     },
     AM62A_SK_PIN_DEFS
     {
-    //  OFFSET  Sysfs_dir     BOARD   BCM   SOC_NAME      PWM_SysFs PWM_Id
-        {44, "600000.gpio",  "3",  "2", "I2C2_SDA", "None", -1},
-        {43, "600000.gpio",  "5",  "3", "I2C2_SCL", "None", -1},
-        {30, "601000.gpio",  "7",  "4", "GPIO1_30", "None", -1},
-        {25, "601000.gpio",  "8", "14", "GPIO1_25", "None", -1},
-        {24, "601000.gpio",  "10", "15", "GPIO1_24", "None", -1},
-        {11, "601000.gpio",  "11", "17", "GPIO1_11", "None", -1},
-        {14, "601000.gpio",  "12", "18", "GPIO1_14", "23000000.pwm", 1},
-        {42, "600000.gpio",  "13", "27", "GPIO0_42", "None", -1},
-        {22, "601000.gpio",  "15", "22", "GPIO1_22", "None", -1},
-        {38, "600000.gpio",  "16", "23", "GPIO0_38", "None", -1},
-        {39, "600000.gpio",  "18", "24", "GPIO0_39", "None", -1},
-        {18, "601000.gpio",  "19", "10", "GPIO1_18",  "None", -1},
-        {19, "601000.gpio",  "21",  "9", "GPIO1_19",  "None", -1},
-        {14, "600000.gpio",  "22", "25", "GPIO0_14", "None", -1},
-        {17, "601000.gpio",  "23", "11", "GPIO1_17",  "None", -1},
-        {15, "601000.gpio",  "24",  "8", "GPIO1_15",  "None", -1},
-        {16, "601000.gpio",  "26",  "7", "GPIO1_16", "None", -1},
-        {36, "600000.gpio",  "29",  "5", "GPIO0_36", "None", -1},
-        {33, "600000.gpio",  "31",  "6", "GPIO0_33", "None", -1},
-        {40, "600000.gpio",  "32", "12", "GPIO0_40", "None", -1},
-        {10, "601000.gpio",  "33", "13", "GPIO1_10", "23010000.pwm", 1},
-        {13, "601000.gpio",  "35", "19", "GPIO1_13", "23000000.pwm", 0},
-        {9, "601000.gpio",   "36", "16", "GPIO1_09",  "23010000.pwm", 0},
-        {41, "600000.gpio",  "37", "26", "GPIO0_41", "None", -1},
-        {8, "601000.gpio",   "38", "20", "GPIO1_08", "None", -1},
-        {7, "601000.gpio",   "40", "21", "GPIO1_07", "None", -1}
+    //  GPIOCHIP_X  Sysfs_dir     BOARD   BCM   SOC_NAME      PWM_SysFs PWM_Id
+        {3, 44, "600000.gpio",  "3",  "2", "I2C2_SDA", "None", -1},
+        {3, 43, "600000.gpio",  "5",  "3", "I2C2_SCL", "None", -1},
+        {3, 30, "601000.gpio",  "7",  "4", "GPIO1_30", "None", -1},
+        {3, 25, "601000.gpio",  "8", "14", "GPIO1_25", "None", -1},
+        {3, 24, "601000.gpio",  "10", "15", "GPIO1_24", "None", -1},
+        {3, 11, "601000.gpio",  "11", "17", "GPIO1_11", "None", -1},
+        {3, 14, "601000.gpio",  "12", "18", "GPIO1_14", "23000000.pwm", 1},
+        {3, 42, "600000.gpio",  "13", "27", "GPIO0_42", "None", -1},
+        {3, 22, "601000.gpio",  "15", "22", "GPIO1_22", "None", -1},
+        {3, 38, "600000.gpio",  "16", "23", "GPIO0_38", "None", -1},
+        {3, 39, "600000.gpio",  "18", "24", "GPIO0_39", "None", -1},
+        {3, 18, "601000.gpio",  "19", "10", "GPIO1_18",  "None", -1},
+        {3, 19, "601000.gpio",  "21",  "9", "GPIO1_19",  "None", -1},
+        {3, 14, "600000.gpio",  "22", "25", "GPIO0_14", "None", -1},
+        {3, 17, "601000.gpio",  "23", "11", "GPIO1_17",  "None", -1},
+        {3, 15, "601000.gpio",  "24",  "8", "GPIO1_15",  "None", -1},
+        {3, 16, "601000.gpio",  "26",  "7", "GPIO1_16", "None", -1},
+        {3, 36, "600000.gpio",  "29",  "5", "GPIO0_36", "None", -1},
+        {3, 33, "600000.gpio",  "31",  "6", "GPIO0_33", "None", -1},
+        {3, 40, "600000.gpio",  "32", "12", "GPIO0_40", "None", -1},
+        {3, 10, "601000.gpio",  "33", "13", "GPIO1_10", "23010000.pwm", 1},
+        {3, 13, "601000.gpio",  "35", "19", "GPIO1_13", "23000000.pwm", 0},
+        {3, 9, "601000.gpio",   "36", "16", "GPIO1_09",  "23010000.pwm", 0},
+        {3, 41, "600000.gpio",  "37", "26", "GPIO0_41", "None", -1},
+        {3, 8, "601000.gpio",   "38", "20", "GPIO1_08", "None", -1},
+        {3, 7, "601000.gpio",   "40", "21", "GPIO1_07", "None", -1}
     },
     compats_am62ask
     {
@@ -319,50 +323,6 @@ PinData get_data()
             return false;
         };
 
-        auto find_pmgr_board = [&](const string& prefix) -> string
-        {
-            if (!os_path_exists(ids_path))
-            {
-                    if (ids_warned == false)
-                    {
-                        ids_warned = true;
-                        string msg = "WARNING: Plugin manager information missing from device tree.\n"
-                                     "WARNING: Cannot determine whether the expected board is present.";
-                        cerr << msg;
-                    }
-
-                    return "None";
-            }
-
-            for (const auto& file : os_listdir(ids_path))
-            {
-                if (startswith(file, prefix))
-                    return file;
-            }
-
-            return "None";
-        };
-
-        auto warn_if_not_carrier_board = [&find_pmgr_board](const vector<string>& carrier_boards)
-        {
-            auto found = false;
-
-            for (auto&& b : carrier_boards)
-            {
-                found = !is_None(find_pmgr_board(b + "-"s));
-                if (found)
-                    break;
-            }
-
-            if (found == false)
-            {
-                string msg = "WARNING: Carrier board is not from a Developer Kit.\n"
-                             "WARNNIG: TI.GPIO library has not been verified with this carrier board,\n"
-                             "WARNING: and in fact is unlikely to work correctly.";
-                cerr << msg << endl;
-            }
-        };
-
         Model model{};
 
         if (matches(_DATA.compats_j721e))
@@ -394,8 +354,6 @@ PinData get_data()
         vector<PinDefinition> pin_defs = _DATA.PIN_DEFS_MAP.at(model);
         PinInfo board_info = _DATA.DEVICE_INFO_MAP.at(model);
 
-        map<string, string> gpio_chip_dirs{};
-        map<string, int> gpio_chip_base{};
         map<string, string> pwm_dirs{};
 
         vector<string> sysfs_prefixes = {"/sys/devices/",
@@ -404,57 +362,6 @@ PinData get_data()
                                          "/sys/devices/platform/bus@100000/bus@100000:bus@28380000/",
                                          "/sys/devices/platform/bus@f0000/"};
 
-        // Get the gpiochip offsets
-        set<string> gpio_chip_names{};
-        for (const auto& pin_def : pin_defs)
-        {
-            if(!is_None(pin_def.SysfsDir))
-                gpio_chip_names.insert(pin_def.SysfsDir);
-        }
-
-        for (const auto& gpio_chip_name : gpio_chip_names)
-        {
-            string gpio_chip_dir = "None";
-            for (const auto& prefix : sysfs_prefixes)
-            {
-                auto d = prefix + gpio_chip_name;
-                if(os_path_isdir(d))
-                {
-                    gpio_chip_dir = d;
-                    break;
-                }
-            }
-
-            if (is_None(gpio_chip_dir))
-                throw runtime_error("Cannot find GPIO chip " + gpio_chip_name);
-
-            gpio_chip_dirs[gpio_chip_name] = gpio_chip_dir;
-            string gpio_chip_gpio_dir = gpio_chip_dir + "/gpio";
-            auto files = os_listdir(gpio_chip_gpio_dir);
-            for (const auto& fn : files)
-            {
-                if (!startswith(fn, "gpiochip"))
-                    continue;
-
-                string gpiochip_fn = gpio_chip_gpio_dir + "/" + fn + "/base";
-                { // scope for f
-                    ifstream f(gpiochip_fn);
-                    stringstream buffer;
-                    buffer << f.rdbuf();
-                    gpio_chip_base[gpio_chip_name] = stoi(strip(buffer.str()));
-                    break;
-                } // scope ends
-            }
-        }
-
-        auto global_gpio_id = [&gpio_chip_base](string gpio_chip_name, int chip_relative_id) -> int
-        {
-            if (is_None(gpio_chip_name) ||
-                !is_in(gpio_chip_name, gpio_chip_base) ||
-                chip_relative_id == -1)
-                return -1;
-            return gpio_chip_base[gpio_chip_name] + chip_relative_id;
-        };
 
         set<string> pwm_chip_names{};
         for(const auto& x : pin_defs)
@@ -474,11 +381,14 @@ PinData get_data()
                     pwm_chip_dir = d;
                     break;
                 }
-
             }
-            /* Some PWM controllers aren't enabled in all versions of the DT. In
+
+            /*
+            Some PWM controllers aren't enabled in all versions of the DT. In
             this case, just hide the PWM function on this pin, but let all other
-            aspects of the library continue to work. */
+            aspects of the library continue to work.
+            */
+
             if (is_None(pwm_chip_dir))
                 continue;
 
@@ -497,7 +407,7 @@ PinData get_data()
             }
         }
 
-        auto model_data = [&global_gpio_id, &pwm_dirs, &gpio_chip_dirs]
+        auto model_data = [&pwm_dirs]
                           (NumberingModes key, const auto& pin_defs)
         {
             auto get_or = [](const auto& dictionary, const string& x, const string& defaultValue) -> string
@@ -509,20 +419,16 @@ PinData get_data()
 
             for (const auto& x : pin_defs)
             {
+
                 string pinName = x.PinName(key);
-
-                if(!is_in(x.SysfsDir, gpio_chip_dirs))
-                    throw std::runtime_error("[model_data]"s + x.SysfsDir + " is not in gpio_chip_dirs"s);
-
                 ret.insert(
                     {
                         pinName,
                         ChannelInfo
                         {
                             pinName,
-                            gpio_chip_dirs.at(x.SysfsDir),
+                            x.gpiochip,
                             x.LinuxPin,
-                            global_gpio_id(x.SysfsDir, x.LinuxPin),
                             get_or(pwm_dirs, x.PWMSysfsDir, "None"),
                             x.PWMID
                         }

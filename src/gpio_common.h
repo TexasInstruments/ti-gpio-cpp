@@ -30,6 +30,7 @@ DEALINGS IN THE SOFTWARE.
 // Standard headers
 #include <string>
 #include <map>
+#include <set>
 
 // Local headers
 #include "model.h"
@@ -46,9 +47,11 @@ constexpr Directions UNKNOWN = Directions::UNKNOWN;
 constexpr Directions HARD_PWM = Directions::HARD_PWM;
 
 //================================================================================
-// All global variables are wrapped in a singleton class except for public APIs,
-// in order to avoid initialization order problem among global variables in
-// different compilation units.
+/*
+All global variables are wrapped in a singleton class except for public APIs,
+in order to avoid initialization order problem among global variables in
+different compilation units.
+ */
 
 class GlobalVariableWrapper
 {
@@ -82,13 +85,9 @@ class GlobalVariableWrapper
     private:
         GlobalVariableWrapper();
 
-        void _CheckPermission();
 };
 
-void _cleanup_all();
-Directions _app_channel_configuration(const ChannelInfo& ch_info);
-Directions _sysfs_channel_configuration(const ChannelInfo& ch_info);
 
-} // namespace GPIO
+}
 
 #endif /* GPIO_COMMON_H */
