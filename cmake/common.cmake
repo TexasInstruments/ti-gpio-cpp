@@ -1,15 +1,15 @@
 # Copyright (c) 2021, Texas Instruments Incorporated. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -55,7 +55,7 @@ include_directories(${PROJECT_SOURCE_DIR} ${ROOT_DIR}/include)
 
 set(COMMON_LINK_LIBS ti_gpio)
 
-set(SYSTEM_LINK_LIBS pthread)
+set(SYSTEM_LINK_LIBS pthread gpiod)
 
 # Function for building a application:
 # app_name: app name
@@ -120,13 +120,12 @@ function(build_lib lib_name lib_type lib_ver)
         VERSION "${lib_ver}"
         COMPATIBILITY AnyNewerVersion
     )
-    
+
     # install the package configuration files
-    install(FILES 
+    install(FILES
       ${CMAKE_CURRENT_BINARY_DIR}/${lib_name}Config.cmake
       ${CMAKE_CURRENT_BINARY_DIR}/${lib_name}ConfigVersion.cmake
       DESTINATION ${CONFIG_PACKAGE_LOCATION}
     )
 
 endfunction()
-
