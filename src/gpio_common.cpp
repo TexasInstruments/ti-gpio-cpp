@@ -39,15 +39,21 @@ DEALINGS IN THE SOFTWARE.
 using namespace GPIO;
 using namespace std;
 
-// The user CAN'T use GPIO::UNKNOW, GPIO::HARD_PWM
-// These are only for implementation
+/*
+The user CAN'T use GPIO::UNKNOW, GPIO::HARD_PWM
+These are only for implementation
+*/
+
 constexpr Directions UNKNOWN = Directions::UNKNOWN;
 constexpr Directions HARD_PWM = Directions::HARD_PWM;
 
 //================================================================================
-// All global variables are wrapped in a singleton class except for public APIs,
-// in order to avoid initialization order problem among global variables in
-// different compilation units.
+
+/*
+All global variables are wrapped in a singleton class except for public APIs,
+in order to avoid initialization order problem among global variables in
+different compilation units.
+*/
 
 GlobalVariableWrapper& GlobalVariableWrapper::get_instance()
 {
@@ -86,19 +92,4 @@ GlobalVariableWrapper::GlobalVariableWrapper()
       _channel_data_by_mode(_pinData.channel_data),
       _gpio_warnings(true),
       _gpio_mode(NumberingModes::None)
-{
-    _CheckPermission();
-}
-
-void GlobalVariableWrapper::_CheckPermission()
-{
-    string path1 = _SYSFS_ROOT + "/export"s;
-    string path2 = _SYSFS_ROOT + "/unexport"s;
-    if (!os_access(path1, W_OK) || !os_access(path2, W_OK)) {
-        cerr << "[ERROR] The current user does not have permissions set to access the library functionalites. "
-                "Please configure permissions or use the root user to run this."
-             << endl;
-        throw runtime_error("Permission Denied.");
-    }
-}
-
+{}
