@@ -29,6 +29,7 @@ DEALINGS IN THE SOFTWARE.
 
 // Standard headers
 #include <fstream>
+#include <memory>
 #include <string>
 #include <map>
 #include <vector>
@@ -43,7 +44,8 @@ namespace GPIO
 {
     struct PinDefinition
     {
-        const int LinuxPin;            // Linux GPIO pin number
+        const int gpiochip;            // GPIO chip no
+        const unsigned int LinuxPin;            // Linux GPIO pin number
         const std::string SysfsDir;    // GPIO chip sysfs directory
         const std::string BoardPin;    // Pin number (BOARD mode)
         const std::string BCMPin;      // Pin number (BCM mode)
@@ -74,25 +76,22 @@ namespace GPIO
 
     struct ChannelInfo
     {
-        const std::string   channel;
-        const std::string   gpio_chip_dir;
-        const int           chip_gpio;
-        const int           gpio;
-        const std::string   pwm_chip_dir;
-        const int           pwm_id;
+        const std::string       channel;
+        const int               chip_gpio;
+        const unsigned int      gpio;
+        const std::string       pwm_chip_dir;
+        const int               pwm_id;
 
         std::shared_ptr<std::fstream> f_direction;
         std::shared_ptr<std::fstream> f_value;
         std::shared_ptr<std::fstream> f_duty_cycle;
 
         ChannelInfo(const std::string  &channel,
-                    const std::string  &gpio_chip_dir,
                     int                 chip_gpio,
                     int                 gpio,
                     const std::string  &pwm_chip_dir,
                     int                 pwm_id)
             : channel(channel),
-              gpio_chip_dir(gpio_chip_dir),
               chip_gpio(chip_gpio),
               gpio(gpio),
               pwm_chip_dir(pwm_chip_dir),

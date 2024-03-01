@@ -32,6 +32,9 @@ DEALINGS IN THE SOFTWARE.
 #include <thread>
 #include <mutex>
 
+// Interface headers
+#include <GPIO.h>
+
 // Local headers
 #include "gpio_pin_data.h"
 
