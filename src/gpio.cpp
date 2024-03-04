@@ -51,6 +51,8 @@ DEALINGS IN THE SOFTWARE.
 #include "python_functions.h"
 #include "gpio_pin_data.h"
 #include "gpio_common.h"
+#include "gpio_hw_pwm.h"
+#include "gpio_sw_pwm.h"
 
 using namespace GPIO;
 using namespace std;
@@ -62,7 +64,7 @@ namespace GPIO
     auto& global = GlobalVariableWrapper::get_instance();
     gpiod_chip  *chip;
     gpiod_line_info *line_info;
-    gpiod_line_direction gpio_direction;
+    gpiod_line_direction gpio_direction = GPIOD_LINE_DIRECTION_AS_IS;
     gpiod_line_config *line_config;
     gpiod_line_request *line_req;
     gpiod_line_settings *line_settings;
@@ -102,25 +104,34 @@ namespace GPIO
     Any of IN, OUT, HARD_PWM, or UNKNOWN may be returned.
     */
 
-    Directions _gpiod_channel_configuration(const ChannelInfo& ch_info)
+    Directions _channel_configuration(const ChannelInfo& ch_info)
     {
-        std::string gpiochipX = "/dev/gpiochip" + to_string(ch_info.chip_gpio);
-        chip = gpiod_chip_open(gpiochipX.c_str());
-        if (chip == NULL)
+        if (!is_None(ch_info.pwm_chip_dir))
         {
-            throw runtime_error("GPIO open chip failed\n");
+            string pwm_dir = ch_info.pwm_chip_dir + "/pwm" + to_string(ch_info.pwm_id);
+            if (os_path_exists(pwm_dir))
+                return HARD_PWM;
         }
-
-        line_info = gpiod_chip_get_line_info(chip, ch_info.gpio);
-        if (line_info == NULL)
+        else
         {
-            throw runtime_error("failed to get line info\n");
+            std::string gpiochipX = "/dev/gpiochip" + to_string(ch_info.chip_gpio);
+            chip = gpiod_chip_open(gpiochipX.c_str());
+            if (chip == NULL)
+            {
+                throw runtime_error("GPIO open chip failed\n");
+            }
+
+            line_info = gpiod_chip_get_line_info(chip, ch_info.gpio);
+            if (line_info == NULL)
+            {
+                throw runtime_error("failed to get line info\n");
+            }
+
+            gpio_direction = gpiod_line_info_get_direction(line_info);
+
+            gpiochip.insert(chip);
+            channelLineInfo[ch_info.gpio] = line_info;
         }
-
-        gpio_direction = gpiod_line_info_get_direction(line_info);
-
-        gpiochip.insert(chip);
-        channelLineInfo[ch_info.gpio] = line_info;
 
         if (gpio_direction == GPIOD_LINE_DIRECTION_INPUT)
             return IN;
@@ -153,15 +164,15 @@ namespace GPIO
         line_settings = gpiod_line_settings_new();
 
         gpiod_line_value val;
-        if (initial == 0)
-        {
-            val = GPIOD_LINE_VALUE_INACTIVE;
-        }
-        else if (initial == 1)
+
+        if (initial == 1)
         {
             val = GPIOD_LINE_VALUE_ACTIVE;
         }
-        else{}
+        else
+        {
+            val = GPIOD_LINE_VALUE_INACTIVE;
+        }
 
         int status = gpiod_line_settings_set_output_value(line_settings, val);
         if (status == -1)
@@ -181,6 +192,12 @@ namespace GPIO
             throw runtime_error("failed to configure the GPIO line\n");
         }
 
+        if (channelLineRequest.find(ch_info.gpio) != channelLineRequest.end())
+        {
+            gpiod_line_request_release(channelLineRequest[ch_info.gpio]);
+            channelLineRequest.erase(ch_info.gpio);
+        }
+
         line_req = gpiod_chip_request_lines (chip, NULL, line_config);
         if (line_req == NULL)
         {
@@ -188,7 +205,7 @@ namespace GPIO
         }
 
         channelLineConfig[ch_info.gpio] = line_config;
-        channelLineRequest[ch_info.gpio] = line_req;
+        // channelLineRequest[ch_info.gpio] = line_req;
         channelLineSettings[ch_info.gpio] = line_settings;
 
         global._channel_configuration[ch_info.channel] = OUT;
@@ -217,6 +234,12 @@ namespace GPIO
             throw runtime_error("failed to configure the GPIO line\n");
         }
 
+        if (channelLineRequest.find(ch_info.gpio) != channelLineRequest.end())
+        {
+            gpiod_line_request_release(channelLineRequest[ch_info.gpio]);
+            channelLineRequest.erase(ch_info.gpio);
+        }
+
         line_req = gpiod_chip_request_lines (chip, NULL, line_config);
         if (line_req == NULL)
         {
@@ -235,8 +258,8 @@ namespace GPIO
         Directions app_cfg = global._channel_configuration[ch_info.channel];
         if (app_cfg == HARD_PWM)
         {
-            // hw_disable_pwm(ch_info);
-            // hw_unexport_pwm(ch_info);
+            hw_disable_pwm(ch_info);
+            hw_unexport_pwm(ch_info);
         }
         else
         {
@@ -246,6 +269,11 @@ namespace GPIO
             gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
             gpiod_line_info_free(channelLineInfo[ch_info.gpio]);
         }
+
+        channelLineRequest.erase(ch_info.gpio);
+        channelLineSettings.erase(ch_info.gpio);
+        channelLineConfig.erase(ch_info.gpio);
+        channelLineInfo.erase(ch_info.gpio);
 
         global._channel_configuration.erase(ch_info.channel);
     }
@@ -260,10 +288,12 @@ namespace GPIO
             ChannelInfo ch_info = _channel_to_info(channel);
             _cleanup_one(ch_info);
         }
-        for (auto it = gpiochip.begin(); it != gpiochip.end(); it++)
-        {
-            gpiod_chip_close (*it);
-        }
+        // for (auto it = gpiochip.begin(); it != gpiochip.end(); it++)
+        // {
+        //     gpiod_chip_close (*it);
+        //     gpiochip.erase(*it);
+        // }
+
         global._gpio_mode = NumberingModes::None;
     }
 
@@ -330,14 +360,29 @@ namespace GPIO
     {
         try
         {
+            if (global._pwm_channels.find(channel) != global._pwm_channels.end())
+            {
+                throw runtime_error("Channel " + channel + " already running as PWM.");
+            }
+        }
+
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what() << " (caught from: GPIO::setup())" << endl;
+            _cleanup_all();
+            terminate();
+        }
+
+        try
+        {
             ChannelInfo ch_info = _channel_to_info(channel, true);
 
             if (global._gpio_warnings)
             {
-                Directions gpiod_cfg = _gpiod_channel_configuration(ch_info);
+                Directions gpiod_cfg = _channel_configuration(ch_info);
                 Directions app_cfg = _app_channel_configuration(ch_info);
 
-                if (app_cfg == UNKNOWN && gpiod_cfg != UNKNOWN)
+                if (app_cfg == UNKNOWN && gpiod_cfg == IN)
                 {
                     cerr << "[WARNING] This channel is already in use, continuing anyway. "
                             "Use GPIO::setwarnings(false) to "
@@ -345,18 +390,22 @@ namespace GPIO
                 }
             }
 
-            if (direction == OUT)
+            if (is_None(ch_info.pwm_chip_dir))
             {
-                _setup_single_out(ch_info, initial);
+                if (direction == OUT)
+                {
+                    _setup_single_out(ch_info, initial);
+                }
+                else if (direction == IN)
+                {
+                    if (initial != -1)
+                        throw runtime_error("initial parameter is not valid for inputs");
+                    _setup_single_in(ch_info);
+                }
+                else
+                    throw runtime_error("GPIO direction must be GPIO::IN or GPIO::OUT");
             }
-            else if (direction == IN)
-            {
-                if (initial != -1)
-                    throw runtime_error("initial parameter is not valid for inputs");
-                _setup_single_in(ch_info);
-            }
-            else
-                throw runtime_error("GPIO direction must be GPIO::IN or GPIO::OUT");
+
         }
         catch (exception& e)
         {
@@ -370,6 +419,64 @@ namespace GPIO
     void setup(int channel, Directions direction, int initial)
     {
         setup(to_string(channel), direction, initial);
+    }
+
+    template <typename T>
+    void setup(const std::initializer_list<T> &channels, Directions direction, int initial)
+    {
+        if ((direction == IN) && (initial != -1))
+        {
+            throw runtime_error("initial parameter is not valid for inputs");
+        }
+
+        for (const auto &c : channels)
+        {
+            setup(c, direction, initial);
+        }
+    }
+
+    /*
+    Function used to cleanup channels at the end of the program.
+    If no channel is provided, all channels are cleaned
+    */
+    void cleanup(const string& channel)
+    {
+        try
+        {
+            // warn if no channel is setup
+            if (global._gpio_mode == NumberingModes::None && global._gpio_warnings)
+            {
+                cerr << "[WARNING] No channels have been set up yet - nothing to clean up! "
+                        "Try cleaning up at the end of your program instead!";
+                return;
+            }
+
+            // clean all channels if no channel param provided
+            if (is_None(channel))
+            {
+                _cleanup_all();
+                return;
+            }
+
+            ChannelInfo ch_info = _channel_to_info(channel);
+            if (is_in(ch_info.channel, global._channel_configuration))
+            {
+                _cleanup_one(ch_info);
+            }
+        }
+
+        catch (exception& e)
+        {
+        cerr << "[Exception] " << e.what()
+             << " (caught from: cleanup())"
+             << endl;
+        }
+    }
+
+    void cleanup(int channel)
+    {
+        string str_channel = to_string(channel);
+        cleanup(str_channel);
     }
 
     /*
@@ -483,6 +590,32 @@ namespace GPIO
         output(to_string(channel), value);
     }
 
+    template <typename T>
+    void output(const std::initializer_list<T> &channels, int value)
+    {
+        for (const auto &c : channels)
+        {
+            output(c, value);
+        }
+    }
+
+    template <typename T>
+    void output(const std::initializer_list<T> &channels, const std::initializer_list<int> &values)
+    {
+        if (channels.size() != values.size())
+        {
+            throw runtime_error("Number of values != number of channels");
+        }
+
+        auto c = channels.begin();
+        auto v = values.begin();
+
+        for (auto it = channels.begin(); it != channels.end(); it++)
+        {
+            output(*c++, *v++);
+        }
+    }
+
     /*
     Function used to check the currently set function of the channel specified.
     */
@@ -492,7 +625,7 @@ namespace GPIO
         try
         {
             ChannelInfo ch_info = _channel_to_info(channel);
-            return _gpiod_channel_configuration(ch_info);
+            return _channel_configuration(ch_info);
         }
         catch (exception& e)
         {
@@ -507,4 +640,193 @@ namespace GPIO
     }
 
     //=============================== PWM =================================
+    GpioPwmIf::GpioPwmIf(int channel, int frequency_hz):
+                    m_ch_info(_channel_to_info(to_string(channel), true, false))
+    {}
+
+    PWM::PWM(int channel, int frequency_hz)
+    {
+        try
+        {
+            if (global._pwm_channels.find(to_string(channel)) != global._pwm_channels.end())
+            {
+                throw runtime_error("Channel " + to_string(channel) + " already running as PWM.");
+            }
+        }
+
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what() << " (caught from: PWM::PWM())" << endl;
+            _cleanup_all();
+            terminate();
+        }
+
+        /* Get the channel information and check if it has PWM
+        * directory information populated. The idea is that if
+        * it has a PWM directory information populated then it
+        * supports HW PWM functionality.
+        */
+        ChannelInfo ch_info = _channel_to_info(to_string(channel), false, false);
+
+        if (!is_None(ch_info.pwm_chip_dir))
+        {
+            pImpl = new GpioPwmIfHw(channel, frequency_hz);
+        }
+        else
+        {
+            pImpl = new GpioPwmIfSw(channel, frequency_hz);
+        }
+
+        try
+        {
+            Directions app_cfg = _app_channel_configuration(pImpl->m_ch_info);
+
+            if (global._gpio_warnings)
+            {
+                auto sysfs_cfg = _channel_configuration(pImpl->m_ch_info);
+                app_cfg = _app_channel_configuration(pImpl->m_ch_info);
+
+                // warn if channel has been setup external to current program
+                if (app_cfg == UNKNOWN && sysfs_cfg != IN) {
+                    cerr << "[WARNING] This channel is already in use, continuing "
+                            "anyway. "
+                            "Use GPIO::setwarnings(false) to disable warnings"
+                        << endl;
+                }
+            }
+
+            pImpl->_reconfigure(frequency_hz, 0.0);
+            global._channel_configuration[to_string(channel)] = GPIO::OUT;
+            global._pwm_channels[to_string(channel)] = true;
+        }
+
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what() << " (caught from: PWM::PWM())" << endl;
+            _cleanup_all();
+            terminate();
+        }
+    }
+
+    PWM::~PWM()
+    {
+        if (!is_in(pImpl->m_ch_info.channel, global._channel_configuration))
+        {
+            /*
+            The user probably ran cleanup() on the channel already, so avoid
+            attempts to repeat the cleanup operations.
+            */
+            return;
+        }
+        try
+        {
+            stop();
+            global._channel_configuration.erase(pImpl->m_ch_info.channel);
+            global._pwm_channels.erase(pImpl->m_ch_info.channel);
+
+        }
+        catch (...)
+        {
+            cerr << "[Exception] ~PWM Exception! shut down the program." << endl;
+            _cleanup_all();
+            terminate();
+        }
+
+        delete pImpl;
+    }
+
+    // move construct
+    PWM::PWM(PWM&& other) = default;
+
+    // move assign
+    PWM& PWM::operator=(PWM&& other)
+    {
+        if (this == &other)
+            return *this;
+
+        pImpl = std::move(other.pImpl);
+        return *this;
+    }
+
+    void PWM::start(double duty_cycle_percent)
+    {
+        try
+        {
+            pImpl->_reconfigure(pImpl->m_frequency_hz, duty_cycle_percent, true);
+        }
+
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what() << " (caught from: PWM::start())" << endl;
+            _cleanup_all();
+            terminate();
+        }
+    }
+
+    void PWM::ChangeFrequency(int frequency_hz)
+    {
+        try
+        {
+            pImpl->_reconfigure(frequency_hz, pImpl->m_duty_cycle_percent);
+        }
+
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what()
+                << " (caught from: PWM::ChangeFrequency())"
+                << endl;
+
+            terminate();
+        }
+    }
+
+    void PWM::ChangeDutyCycle(double duty_cycle_percent)
+    {
+        try
+        {
+            pImpl->_reconfigure(pImpl->m_frequency_hz, duty_cycle_percent);
+        }
+
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what()
+                << " (caught from: PWM::ChangeDutyCycle())"
+                << endl;
+
+            terminate();
+        }
+    }
+
+    void PWM::stop()
+    {
+        try
+        {
+            pImpl->stop();
+        }
+
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what()
+                 << " (caught from: PWM::stop())"
+                 << endl;
+
+            throw runtime_error("Exeception from PWM::stop");
+        }
+    }
+
+    //===================================== EXPLICIT INSTANTIATION ================================
+    template
+    void setup<int>(const std::initializer_list<int> &channels, Directions direction, int initial);
+    template
+    void output<int>(const std::initializer_list<int> &channels, int value);
+    template
+    void output<int>(const std::initializer_list<int> &channels, const std::initializer_list<int> &values);
+
+    template
+    void setup<string>(const std::initializer_list<string> &channels, Directions direction, int initial);
+    template
+    void output<string>(const std::initializer_list<string> &channels, int value);
+    template
+    void output<string>(const std::initializer_list<string> &channels, const std::initializer_list<int> &values);
+
 }

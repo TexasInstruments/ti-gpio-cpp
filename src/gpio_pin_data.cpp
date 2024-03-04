@@ -289,8 +289,6 @@ EntirePinData::EntirePinData()
     }
 {};
 
-static bool ids_warned = false;
-
 PinData get_data()
 {
     try
