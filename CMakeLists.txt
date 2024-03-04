@@ -31,8 +31,8 @@ build_lib(${PROJECT_NAME} STATIC 2.0.0
         #   src/gpio_event.h
           src/gpio_pin_data.cpp
           src/gpio_common.cpp
-        #   src/gpio_sw_pwm.cpp
-        #   src/gpio_hw_pwm.cpp
+          src/gpio_sw_pwm.cpp
+          src/gpio_hw_pwm.cpp
           src/python_functions.cpp)
 
 # Build sample applications
@@ -44,8 +44,8 @@ build_lib(${PROJECT_NAME} STATIC 2.0.0
 
 build_app(simple_out samples/simple_out.cpp)
 
-# build_app(simple_pwm samples/simple_pwm.cpp)
+build_app(simple_pwm samples/simple_pwm.cpp)
 
-# build_app(test_all_pins_input samples/test_all_pins_input.cpp)
+build_app(test_all_pins_input samples/test_all_pins_input.cpp)
 
 # build_app(test_all_pins_pwm samples/test_all_pins_pwm.cpp)

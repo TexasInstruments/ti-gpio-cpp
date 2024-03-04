@@ -141,9 +141,9 @@ int run_test(GPIO::NumberingModes mode, const initializer_list<T> pins)
                      << pin_status[value] << endl;
             }
 
-            GPIO::cleanup();
         }
     }
+    GPIO::cleanup();
 
     return status;
 }
