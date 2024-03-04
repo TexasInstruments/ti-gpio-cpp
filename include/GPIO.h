@@ -30,8 +30,6 @@ DEALINGS IN THE SOFTWARE.
 
 //standard headers
 #include <memory> // for pImpl
-#include <map>
-#include <set>
 
 // library headers
 #include <gpiod.h>
@@ -40,13 +38,16 @@ namespace GPIO
 {
     constexpr auto VERSION = "2.0.0";
 
+    extern const std::string BOARD_INFO;
+    extern const std::string model;
+
     // Pin Numbering Modes
     enum class NumberingModes { BOARD, BCM, SOC, None };
 
     // GPIO::BOARD, GPIO::BCM, GPIO::SOC
     constexpr NumberingModes BOARD = NumberingModes::BOARD;
-    constexpr NumberingModes BCM = NumberingModes::BCM;
-    constexpr NumberingModes SOC = NumberingModes::SOC;
+    constexpr NumberingModes BCM   = NumberingModes::BCM;
+    constexpr NumberingModes SOC   = NumberingModes::SOC;
 
     /*
     Pull up/down options are removed because they are unused in
@@ -75,6 +76,9 @@ namespace GPIO
     constexpr Edge FALLING = Edge::FALLING;
     constexpr Edge BOTH = Edge::BOTH;
 
+    // Function used to enable/disable warnings during setup and cleanup.
+    void setwarnings(bool state);
+
     /*
     Function used to set the pin mumbering mode.
     Possible mode values are BOARD, BCM, and SOC
@@ -91,26 +95,34 @@ namespace GPIO
     */
     void setup(const std::string& channel, Directions direction, int initial = -1);
     void setup(int channel, Directions direction, int initial = -1);
+    template <typename T>
+    void setup(const std::initializer_list<T> &channels, Directions direction, int initial = -1);
 
     /*
     Function used to cleanup channels at the end of the program.
     If no channel is provided, all channels are cleaned
     */
+    void cleanup(const std::string& channel);
+    void cleanup(int channel);
     void cleanup();
 
     /*
     Function used to return the current value of the specified channel.
     Function returns either HIGH or LOW
     */
-    int input(int channel);
     int input(const std::string& channel);
+    int input(int channel);
 
     /*
     Function used to set a value to a channel.
     Values must be either HIGH or LOW
     */
-    void output(int channel, int value);
     void output(const std::string& channel, int value);
+    void output(int channel, int value);
+    template <typename T>
+    void output(const std::initializer_list<T> &channels, int value);
+    template <typename T>
+    void output(const std::initializer_list<T> &channels, const std::initializer_list<int> &values);
 
     /*
     Function used to check the currently set function
@@ -129,13 +141,13 @@ namespace GPIO
     @bouncetime (optional) a button-bounce signal ignore time (in milliseconds, default=none)
     */
 
-    void add_event_detect(const std::string& channel, Edge edge, const Callback& callback = nullptr,
-                        unsigned long bounce_time = 0);
-    void add_event_detect(int channel, Edge edge, const Callback& callback = nullptr, unsigned long bounce_time = 0);
+    // void add_event_detect(const std::string& channel, Edge edge, const Callback& callback = nullptr,
+    //                     unsigned long bounce_time = 0);
+    // void add_event_detect(int channel, Edge edge, const Callback& callback = nullptr, unsigned long bounce_time = 0);
 
-    /* Function used to remove event detection for channel */
-    void remove_event_detect(const std::string& channel);
-    void remove_event_detect(int channel);
+    // /* Function used to remove event detection for channel */
+    // void remove_event_detect(const std::string& channel);
+    // void remove_event_detect(int channel);
 
 
     //--------------PWM---------------------------------------

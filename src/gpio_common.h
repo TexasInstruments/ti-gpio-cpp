@@ -87,6 +87,9 @@ class GlobalVariableWrapper
 
 };
 
+void _cleanup_all();
+Directions _app_channel_configuration(const ChannelInfo& ch_info);
+Directions _channel_configuration(const ChannelInfo& ch_info);
 
 }
 

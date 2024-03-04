@@ -32,7 +32,7 @@ DEALINGS IN THE SOFTWARE.
 
 namespace GPIO
 {
-    // HW PWM class ==========================================================
+    // SW PWM class ==========================================================
     class GpioPwmIfSw: public GpioPwmIf
     {
         public:

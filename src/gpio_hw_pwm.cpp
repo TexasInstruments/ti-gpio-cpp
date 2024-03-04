@@ -159,7 +159,7 @@ GpioPwmIfHw::GpioPwmIfHw(int channel, int frequency_hz):
 
         if (global._gpio_warnings)
         {
-            auto sysfs_cfg = _sysfs_channel_configuration(m_ch_info);
+            auto sysfs_cfg = _channel_configuration(m_ch_info);
             app_cfg = _app_channel_configuration(m_ch_info);
 
             // warn if channel has been setup external to current program
@@ -207,12 +207,13 @@ void GpioPwmIfHw::stop()
     {
         if (!m_started)
             return;
-
         hw_disable_pwm(m_ch_info);
+
     }
 
     catch (exception& e)
     {
+        cout<<"STOP 4"<<std::endl;
         _cleanup_all();
         throw e;
     }
@@ -257,4 +258,3 @@ GpioPwmIfHw::~GpioPwmIfHw()
 }
 
 } // namespace GPIO
-

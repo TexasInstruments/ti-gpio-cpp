@@ -63,7 +63,7 @@ int main()
 	// set pin as an output pin with optional initial state of HIGH
 	GPIO::setup(output_pin, GPIO::OUT, GPIO::HIGH);
 
-	cout << "Strating demo now! Press CTRL+C to exit" << endl;
+	cout << "Starting demo now! Press CTRL+C to exit" << endl;
 	int curr_value = GPIO::HIGH;
 
 	while (!end_this_program)
