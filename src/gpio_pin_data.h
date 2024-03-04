@@ -86,10 +86,10 @@ namespace GPIO
         std::shared_ptr<std::fstream> f_value;
         std::shared_ptr<std::fstream> f_duty_cycle;
 
-        ChannelInfo(const std::string  &channel,
+        ChannelInfo(const std::string   &channel,
                     int                 chip_gpio,
-                    int                 gpio,
-                    const std::string  &pwm_chip_dir,
+                    unsigned int        gpio,
+                    const std::string   &pwm_chip_dir,
                     int                 pwm_id)
             : channel(channel),
               chip_gpio(chip_gpio),
