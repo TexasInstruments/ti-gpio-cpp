@@ -86,14 +86,13 @@ int main()
 	// Pin Definitions
     vector<int> pwm_pins = get_pwn_pins();
 
-    GPIO::setwarnings(false);
+    GPIO::setwarnings(true);
 
     for (auto pin : pwm_pins)
     {
         // Pin Setup.
         // Board pin-numbering scheme
         GPIO::setmode(GPIO::BOARD);
-
         // set pin as an output pin with optional initial state of HIGH
         GPIO::setup(pin, GPIO::OUT, GPIO::HIGH);
         GPIO::PWM p(pin, 50);

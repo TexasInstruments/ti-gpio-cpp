@@ -69,7 +69,6 @@ namespace GPIO
     gpiod_line_request *line_req;
     gpiod_line_settings *line_settings;
 
-    std::set <gpiod_chip *> gpiochip;
     std::map <const int, gpiod_line_info *> channelLineInfo;
     std::map <const int, gpiod_line_config *> channelLineConfig;
     std::map <const int, gpiod_line_settings *> channelLineSettings;
@@ -114,6 +113,11 @@ namespace GPIO
         }
         else
         {
+            if (chip != NULL)
+            {
+                gpiod_chip_close(chip);
+            }
+
             std::string gpiochipX = "/dev/gpiochip" + to_string(ch_info.chip_gpio);
             chip = gpiod_chip_open(gpiochipX.c_str());
             if (chip == NULL)
@@ -124,12 +128,12 @@ namespace GPIO
             line_info = gpiod_chip_get_line_info(chip, ch_info.gpio);
             if (line_info == NULL)
             {
+                gpiod_chip_close(chip);
                 throw runtime_error("failed to get line info\n");
             }
 
             gpio_direction = gpiod_line_info_get_direction(line_info);
 
-            gpiochip.insert(chip);
             channelLineInfo[ch_info.gpio] = line_info;
         }
 
@@ -158,6 +162,9 @@ namespace GPIO
         line_config = gpiod_line_config_new();
         if (line_config == NULL)
         {
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to get line config\n");
         }
 
@@ -177,18 +184,33 @@ namespace GPIO
         int status = gpiod_line_settings_set_output_value(line_settings, val);
         if (status == -1)
         {
+            gpiod_line_settings_free(line_settings);
+            gpiod_line_config_free(line_config);
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to set the output value the given GPIO line\n");
         }
 
         status = gpiod_line_settings_set_direction (line_settings, GPIOD_LINE_DIRECTION_OUTPUT);
         if (status == -1)
         {
+            gpiod_line_settings_free(line_settings);
+            gpiod_line_config_free(line_config);
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to set the direction for the given GPIO line\n");
         }
 
         status = gpiod_line_config_add_line_settings(line_config, &ch_info.gpio, 1, line_settings);
         if (status == -1)
         {
+            gpiod_line_settings_free(line_settings);
+            gpiod_line_config_free(line_config);
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to configure the GPIO line\n");
         }
 
@@ -201,11 +223,16 @@ namespace GPIO
         line_req = gpiod_chip_request_lines (chip, NULL, line_config);
         if (line_req == NULL)
         {
+            gpiod_line_settings_free(line_settings);
+            gpiod_line_config_free(line_config);
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to get the requested GPIO line\n");
         }
 
         channelLineConfig[ch_info.gpio] = line_config;
-        // channelLineRequest[ch_info.gpio] = line_req;
+        channelLineRequest[ch_info.gpio] = line_req;
         channelLineSettings[ch_info.gpio] = line_settings;
 
         global._channel_configuration[ch_info.channel] = OUT;
@@ -217,6 +244,9 @@ namespace GPIO
         line_config = gpiod_line_config_new();
         if (line_config == NULL)
         {
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to get line config\n");
         }
 
@@ -225,12 +255,22 @@ namespace GPIO
         int status = gpiod_line_settings_set_direction (line_settings, GPIOD_LINE_DIRECTION_INPUT);
         if (status == -1)
         {
+            gpiod_line_settings_free(line_settings);
+            gpiod_line_config_free(line_config);
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to set the direction for the given GPIO line\n");
         }
 
         status = gpiod_line_config_add_line_settings(line_config, &ch_info.gpio, 1, line_settings);
         if (status == -1)
         {
+            gpiod_line_settings_free(line_settings);
+            gpiod_line_config_free(line_config);
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to configure the GPIO line\n");
         }
 
@@ -243,6 +283,11 @@ namespace GPIO
         line_req = gpiod_chip_request_lines (chip, NULL, line_config);
         if (line_req == NULL)
         {
+            gpiod_line_settings_free(line_settings);
+            gpiod_line_config_free(line_config);
+            gpiod_line_info_free(line_info);
+            gpiod_chip_close(chip);
+
             throw runtime_error("failed to get the requested GPIO line\n");
         }
 
@@ -288,11 +333,6 @@ namespace GPIO
             ChannelInfo ch_info = _channel_to_info(channel);
             _cleanup_one(ch_info);
         }
-        // for (auto it = gpiochip.begin(); it != gpiochip.end(); it++)
-        // {
-        //     gpiod_chip_close (*it);
-        //     gpiochip.erase(*it);
-        // }
 
         global._gpio_mode = NumberingModes::None;
     }
@@ -376,7 +416,6 @@ namespace GPIO
         try
         {
             ChannelInfo ch_info = _channel_to_info(channel, true);
-
             if (global._gpio_warnings)
             {
                 Directions gpiod_cfg = _channel_configuration(ch_info);
@@ -389,7 +428,6 @@ namespace GPIO
                             "disable warnings.\n";
                 }
             }
-
             if (is_None(ch_info.pwm_chip_dir))
             {
                 if (direction == OUT)
