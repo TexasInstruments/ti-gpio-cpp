@@ -48,4 +48,4 @@ build_app(simple_pwm samples/simple_pwm.cpp)
 
 build_app(test_all_pins_input samples/test_all_pins_input.cpp)
 
-# build_app(test_all_pins_pwm samples/test_all_pins_pwm.cpp)
+build_app(test_all_pins_pwm samples/test_all_pins_pwm.cpp)
