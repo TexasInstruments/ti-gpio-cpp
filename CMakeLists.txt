@@ -36,11 +36,11 @@ build_lib(${PROJECT_NAME} STATIC 2.0.0
           src/python_functions.cpp)
 
 # Build sample applications
-# build_app(ti_gpio_test samples/ti_gpio_test.cpp)
+build_app(ti_gpio_test samples/ti_gpio_test.cpp)
 
-# build_app(button_event samples/button_event.cpp)
+build_app(button_event samples/button_event.cpp)
 
-# build_app(button_interrupt samples/button_interrupt.cpp)
+build_app(button_interrupt samples/button_interrupt.cpp)
 
 build_app(simple_out samples/simple_out.cpp)
 

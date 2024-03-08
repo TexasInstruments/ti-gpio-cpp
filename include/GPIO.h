@@ -30,9 +30,22 @@ DEALINGS IN THE SOFTWARE.
 
 //standard headers
 #include <memory> // for pImpl
+#include <functional>
+#include <type_traits>
 
 // library headers
 #include <gpiod.h>
+
+#if (__cplusplus < 201703L)
+// if C++17 is not supported,
+
+namespace std
+{
+    template <class...>
+    using void_t = void;
+}
+
+#endif
 
 namespace GPIO
 {
@@ -131,7 +144,79 @@ namespace GPIO
     Directions gpio_function(int channel);
     Directions gpio_function(const std::string& channel);
 
+    //--------------TYPE TRAITS--------------------------------
+
+    template<class T, class = void>
+    struct is_equality_comparable : std::false_type{};
+
+    template<class T>
+    struct is_equality_comparable<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+        : std::is_convertible<decltype(std::declval<T>() == std::declval<T>()), bool>
+    {};
+
+    template<class T>
+    constexpr bool is_equality_comparable_v = is_equality_comparable<T>::value;
+
+    //--------------CALLBACK--------------------------------
+
+    class Callback;
+    bool operator==(const Callback& A, const Callback& B);
+    bool operator!=(const Callback& A, const Callback& B);
+
+    class Callback
+    {
+    private:
+        using func_t = std::function<void(int)>;
+
+        template <class T>
+        static bool comparer_impl(const func_t& A, const func_t& B)
+        {
+            static_assert(is_equality_comparable_v<const T&>,
+                        "Callback function MUST be equality comparable. ex> f0 == f1");
+
+            if(A == nullptr && B == nullptr)
+                return true;
+
+            const T* targetA = A.target<T>();
+            const T* targetB = B.target<T>();
+
+            return targetA != nullptr && targetB != nullptr && *targetA == *targetB;
+        }
+
+
+    public:
+        template <class T, class = std::enable_if_t<!std::is_same<std::decay_t<T>, Callback>::value>>
+        Callback(T&& function)
+        : function(std::forward<T>(function)),
+            comparer([](const func_t& A, const func_t& B) { return comparer_impl<std::decay_t<T>>(A, B); })
+        {
+            static_assert(std::is_constructible<func_t, T&&>::value, "Callback return type: void, argument type: int");
+        }
+
+        Callback(Callback&&) = default;
+        Callback& operator=(Callback&&) = default;
+        Callback(const Callback&) = default;
+        Callback& operator=(const Callback&) = default;
+
+        void operator()(int input) const;
+
+        friend bool operator==(const Callback& A, const Callback& B);
+        friend bool operator!=(const Callback& A, const Callback& B);
+
+    private:
+        func_t function;
+        std::function<bool(const func_t&, const func_t&)> comparer;
+    };
+
     //--------------EVENTS--------------------------------
+
+    /*
+    Function used to add a callback function to channel, after it has been
+    registered for events using add_event_detect()
+    */
+
+    void add_event_callback(const std::string& channel, const Callback& callback);
+    void add_event_callback(int channel, const Callback& callback);
 
     /*
     Function used to add threaded event detection for a specified gpio channel.
@@ -141,14 +226,25 @@ namespace GPIO
     @bouncetime (optional) a button-bounce signal ignore time (in milliseconds, default=none)
     */
 
-    // void add_event_detect(const std::string& channel, Edge edge, const Callback& callback = nullptr,
-    //                     unsigned long bounce_time = 0);
-    // void add_event_detect(int channel, Edge edge, const Callback& callback = nullptr, unsigned long bounce_time = 0);
+    void add_event_detect(const std::string& channel, Edge edge, const Callback& callback = nullptr,
+                        unsigned long bounce_time = 0);
+    void add_event_detect(int channel, Edge edge, const Callback& callback = nullptr, unsigned long bounce_time = 0);
 
-    // /* Function used to remove event detection for channel */
-    // void remove_event_detect(const std::string& channel);
-    // void remove_event_detect(int channel);
+    /*
+    Function used to perform a blocking wait until the specified edge event is detected within the specified
+    timeout period. Returns the channel if an event is detected or 0 if a timeout has occurred.
+    @channel is an integer specifying the channel
+    @edge must be a member of GPIO::Edge
+    @bouncetime in milliseconds (optional)
+    @timeout in nanoseconds (optional)
+    @returns channel for an event, 0 for a timeout
+    */
 
+    void wait_for_edge(const std::string& channel, Edge edge, unsigned long bounce_time = 0, int64_t timeout = -1);
+    void wait_for_edge(int channel, Edge edge, unsigned long bounce_time = 0, int64_t timeout = -1);
+
+    //event cleanup
+    void event_cleanup(unsigned int channel);
 
     //--------------PWM---------------------------------------
     class GpioPwmIf;

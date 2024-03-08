@@ -42,6 +42,8 @@ DEALINGS IN THE SOFTWARE.
 #include <utility>
 #include <vector>
 #include <mutex>
+#include <thread>
+#include <atomic>
 
 // Interface headers
 #include <GPIO.h>
@@ -54,6 +56,9 @@ DEALINGS IN THE SOFTWARE.
 #include "gpio_hw_pwm.h"
 #include "gpio_sw_pwm.h"
 
+#define MAX_EVENTS 20
+#define BLOCK_FOREVER -1
+
 using namespace GPIO;
 using namespace std;
 
@@ -62,17 +67,26 @@ namespace GPIO
 
     //================================================================================
     auto& global = GlobalVariableWrapper::get_instance();
+    typedef  void (*cb) (int channel);
+    std::thread* event_handler = nullptr;
+    std::atomic_bool _run_loop;
+    std::atomic_bool end_wait_event = false;
+
     gpiod_chip  *chip;
     gpiod_line_info *line_info;
     gpiod_line_direction gpio_direction = GPIOD_LINE_DIRECTION_AS_IS;
     gpiod_line_config *line_config;
     gpiod_line_request *line_req;
     gpiod_line_settings *line_settings;
+    gpiod_edge_event_buffer* event_buffer;
 
+    std::set <gpiod_chip *> chips_open;
     std::map <const int, gpiod_line_info *> channelLineInfo;
     std::map <const int, gpiod_line_config *> channelLineConfig;
     std::map <const int, gpiod_line_settings *> channelLineSettings;
     std::map <const int, gpiod_line_request *> channelLineRequest;
+    std::map <const int, gpiod_edge_event_buffer *> channelEventBuffer;
+    std::vector<Callback> event_callbacks;
     //================================================================================
 
     void _validate_mode_set()
@@ -115,26 +129,13 @@ namespace GPIO
         {
             if (chip != NULL)
             {
-                gpiod_chip_close(chip);
+                line_info = gpiod_chip_get_line_info(chip, ch_info.gpio);
+                if (line_info != NULL)
+                {
+                    channelLineInfo[ch_info.gpio] = line_info;
+                    gpio_direction = gpiod_line_info_get_direction(line_info);
+                }
             }
-
-            std::string gpiochipX = "/dev/gpiochip" + to_string(ch_info.chip_gpio);
-            chip = gpiod_chip_open(gpiochipX.c_str());
-            if (chip == NULL)
-            {
-                throw runtime_error("GPIO open chip failed\n");
-            }
-
-            line_info = gpiod_chip_get_line_info(chip, ch_info.gpio);
-            if (line_info == NULL)
-            {
-                gpiod_chip_close(chip);
-                throw runtime_error("failed to get line info\n");
-            }
-
-            gpio_direction = gpiod_line_info_get_direction(line_info);
-
-            channelLineInfo[ch_info.gpio] = line_info;
         }
 
         if (gpio_direction == GPIOD_LINE_DIRECTION_INPUT)
@@ -157,8 +158,20 @@ namespace GPIO
         return global._channel_configuration[ch_info.channel];
     }
 
-    void _setup_single_out(const ChannelInfo& ch_info, int initial = -1)
+    void _setup_single_out(const ChannelInfo& ch_info, int initial)
     {
+        std::string gpiochipX = "/dev/gpiochip" + to_string(ch_info.chip_gpio);
+        chip = gpiod_chip_open(gpiochipX.c_str());
+        if (chip == NULL)
+        {
+            throw runtime_error("GPIO open chip failed\n");
+        }
+
+        if (chips_open.find(chip) == chips_open.end())
+        {
+            chips_open.insert(chip);
+        }
+
         line_config = gpiod_line_config_new();
         if (line_config == NULL)
         {
@@ -220,7 +233,8 @@ namespace GPIO
             channelLineRequest.erase(ch_info.gpio);
         }
 
-        line_req = gpiod_chip_request_lines (chip, NULL, line_config);
+        line_req = gpiod_chip_request_lines(chip, NULL, line_config);
+
         if (line_req == NULL)
         {
             gpiod_line_settings_free(line_settings);
@@ -240,6 +254,17 @@ namespace GPIO
 
     void _setup_single_in(const ChannelInfo& ch_info)
     {
+        std::string gpiochipX = "/dev/gpiochip" + to_string(ch_info.chip_gpio);
+        chip = gpiod_chip_open(gpiochipX.c_str());
+        if (chip == NULL)
+        {
+            throw runtime_error("GPIO open chip failed\n");
+        }
+
+        if (chips_open.find(chip) == chips_open.end())
+        {
+            chips_open.insert(chip);
+        }
 
         line_config = gpiod_line_config_new();
         if (line_config == NULL)
@@ -308,7 +333,7 @@ namespace GPIO
         }
         else
         {
-            // _event_cleanup(ch_info.gpio);
+            event_cleanup(ch_info.gpio);
             gpiod_line_request_release(channelLineRequest[ch_info.gpio]);
             gpiod_line_settings_free(channelLineSettings[ch_info.gpio]);
             gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
@@ -332,6 +357,11 @@ namespace GPIO
             const auto& channel = _pair.first;
             ChannelInfo ch_info = _channel_to_info(channel);
             _cleanup_one(ch_info);
+        }
+
+        for (auto it = chips_open.begin(); it != chips_open.end(); it++)
+        {
+            gpiod_chip_close(*it);
         }
 
         global._gpio_mode = NumberingModes::None;
@@ -421,7 +451,7 @@ namespace GPIO
                 Directions gpiod_cfg = _channel_configuration(ch_info);
                 Directions app_cfg = _app_channel_configuration(ch_info);
 
-                if (app_cfg == UNKNOWN && gpiod_cfg == IN)
+                if (app_cfg == UNKNOWN && gpiod_cfg != UNKNOWN)
                 {
                     cerr << "[WARNING] This channel is already in use, continuing anyway. "
                             "Use GPIO::setwarnings(false) to "
@@ -677,6 +707,317 @@ namespace GPIO
         return gpio_function(to_string(channel));
     }
 
+    //=============================== EVENTS =================================
+
+    void add_event_callback(const std::string& channel, const Callback& callback)
+    {
+        try {
+            // Argument Check
+            if (callback == nullptr) {
+                throw invalid_argument("callback cannot be null");
+            }
+
+            ChannelInfo ch_info = _channel_to_info(channel, true);
+
+            // channel must be setup as input
+            Directions app_cfg = _app_channel_configuration(ch_info);
+            if (app_cfg != Directions::IN) {
+                throw runtime_error("You must setup() the GPIO channel as an input first");
+            }
+
+            // edge event must already exist
+            if (gpiod_line_settings_get_edge_detection(line_settings) == GPIOD_LINE_EDGE_NONE)
+                throw runtime_error("The edge event must have been set via add_event_detect()");
+
+            // Execute
+            event_callbacks.push_back(callback);
+        }
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what() << " (caught from: GPIO::add_event_callback())" << endl;
+            _cleanup_all();
+            terminate();
+        }
+    }
+
+    void add_event_callback(int channel, const Callback& callback)
+    {
+        add_event_callback(std::to_string(channel), callback);
+    }
+
+    void add_event_detect(int channel, Edge edge, const Callback& callback, unsigned long bounce_time)
+    {
+        try {
+            ChannelInfo ch_info = _channel_to_info(std::to_string(channel), true);
+
+            // channel must be setup as input
+            Directions app_cfg = _app_channel_configuration(ch_info);
+            if (app_cfg != Directions::IN)
+            {
+                throw runtime_error("You must setup() the GPIO channel as an input first");
+            }
+
+            // edge provided must be rising, falling or both
+            gpiod_line_edge gpiod_edge_val = GPIOD_LINE_EDGE_NONE;
+            if (edge != Edge::RISING && edge != Edge::FALLING && edge != Edge::BOTH)
+                throw invalid_argument("argument 'edge' must be set to RISING, FALLING or BOTH");
+            else
+            {
+                if (edge == Edge::RISING )
+                {
+                    gpiod_edge_val = GPIOD_LINE_EDGE_RISING;
+                }
+                else if (edge == Edge::FALLING)
+                {
+                    gpiod_edge_val = GPIOD_LINE_EDGE_FALLING;
+                }
+                else
+                {
+                    gpiod_edge_val = GPIOD_LINE_EDGE_BOTH;
+                }
+            }
+
+            int status = gpiod_line_settings_set_edge_detection (channelLineSettings[ch_info.gpio],
+                                                                 gpiod_edge_val);
+            if (status == -1)
+            {
+                gpiod_line_settings_free(channelLineSettings[ch_info.gpio]);
+                gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
+                gpiod_line_info_free(channelLineInfo[ch_info.gpio]);
+                gpiod_chip_close(chip);
+
+                throw runtime_error("failed to configure edge on the requested line\n");
+            }
+
+            gpiod_line_settings_set_debounce_period_us (channelLineSettings[ch_info.gpio],
+                                                        bounce_time);
+
+            status = gpiod_line_config_add_line_settings (channelLineConfig[ch_info.gpio],
+                                                        &ch_info.gpio,
+                                                        1,
+                                                        channelLineSettings[ch_info.gpio]);
+            if (status == -1)
+            {
+                gpiod_line_settings_free(channelLineSettings[ch_info.gpio]);
+                gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
+                gpiod_line_info_free(channelLineInfo[ch_info.gpio]);
+                gpiod_chip_close(chip);
+
+                throw runtime_error("failed to configure the GPIO line for event\n");
+
+            }
+
+            status = gpiod_line_request_reconfigure_lines(channelLineRequest[ch_info.gpio],
+                                                        channelLineConfig[ch_info.gpio]);
+            if (status == -1)
+            {
+                gpiod_line_settings_free(channelLineSettings[ch_info.gpio]);
+                gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
+                gpiod_line_info_free(channelLineInfo[ch_info.gpio]);
+                gpiod_chip_close(chip);
+
+                throw runtime_error("Lines could not be reconfigured for edge events\n");
+            }
+
+            // Execute
+            if (callback != nullptr)
+            {
+                add_event_callback(channel, callback);
+            }
+
+            event_buffer = gpiod_edge_event_buffer_new(MAX_EVENTS);
+            if (event_buffer == NULL)
+            {
+                throw runtime_error("Create Buffer Error Occured\n");
+            }
+            channelEventBuffer[ch_info.gpio] = event_buffer;
+
+            start_thread(channel);
+        }
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what() << " (caught from: GPIO::add_event_detect())" << endl;
+            _cleanup_all();
+            terminate();
+        }
+    }
+
+    void wait_for_edge(const std::string& channel, Edge edge, unsigned long bounce_time, int64_t timeout)
+    {
+        return wait_for_edge(std::atoi(channel.data()), edge, bounce_time, timeout);
+    }
+
+    void wait_for_edge(int channel, Edge edge, unsigned long bounce_time, int64_t timeout)
+    {
+        try {
+            ChannelInfo ch_info = _channel_to_info(std::to_string(channel), true);
+
+            // channel must be setup as input
+            Directions app_cfg = _app_channel_configuration(ch_info);
+            if (app_cfg != Directions::IN) {
+                throw runtime_error("You must setup() the GPIO channel as an input first");
+            }
+
+            // edge provided must be rising, falling or both
+            gpiod_line_edge gpiod_edge_val = GPIOD_LINE_EDGE_NONE;
+            if (edge != Edge::RISING && edge != Edge::FALLING && edge != Edge::BOTH)
+            {
+                throw invalid_argument("argument 'edge' must be set to RISING, FALLING or BOTH");
+            }
+            else
+            {
+                if (edge == Edge::RISING )
+                {
+                    gpiod_edge_val = GPIOD_LINE_EDGE_RISING;
+                }
+                else if (edge == Edge::FALLING)
+                {
+                    gpiod_edge_val = GPIOD_LINE_EDGE_FALLING;
+                }
+                else
+                {
+                    gpiod_edge_val = GPIOD_LINE_EDGE_BOTH;
+                }
+            }
+
+            int status = gpiod_line_settings_set_edge_detection (channelLineSettings[ch_info.gpio],
+                                                                 gpiod_edge_val);
+            if (status == -1)
+            {
+                gpiod_line_settings_free(channelLineSettings[ch_info.gpio]);
+                gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
+                gpiod_line_info_free(channelLineInfo[ch_info.gpio]);
+                gpiod_chip_close(chip);
+
+                throw runtime_error("failed to configure edge on the requested line\n");
+            }
+
+            gpiod_line_settings_set_debounce_period_us (channelLineSettings[ch_info.gpio],
+                                                        bounce_time);
+
+            status = gpiod_line_config_add_line_settings (channelLineConfig[ch_info.gpio],
+                                                        &ch_info.gpio,
+                                                        1,
+                                                        channelLineSettings[ch_info.gpio]);
+            if (status == -1)
+            {
+                gpiod_line_settings_free(channelLineSettings[ch_info.gpio]);
+                gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
+                gpiod_line_info_free(channelLineInfo[ch_info.gpio]);
+                gpiod_chip_close(chip);
+
+                throw runtime_error("failed to configure the GPIO line for event\n");
+
+            }
+
+            status = gpiod_line_request_reconfigure_lines(channelLineRequest[ch_info.gpio],
+                                                        channelLineConfig[ch_info.gpio]);
+            if (status == -1)
+            {
+                gpiod_line_settings_free(channelLineSettings[ch_info.gpio]);
+                gpiod_line_config_free(channelLineConfig[ch_info.gpio]);
+                gpiod_line_info_free(channelLineInfo[ch_info.gpio]);
+                gpiod_chip_close(chip);
+
+                throw runtime_error("Lines could not be reconfigured for edge events\n");
+            }
+
+            // Execute
+            int no_events;
+            event_buffer = gpiod_edge_event_buffer_new(MAX_EVENTS);
+            if (event_buffer == NULL)
+            {
+                throw runtime_error("Create Buffer Error Occured\n");
+            }
+
+            channelEventBuffer[ch_info.gpio] = event_buffer;
+
+            status = gpiod_line_request_wait_edge_events (channelLineRequest[ch_info.gpio], timeout);
+            end_wait_event = true;
+
+            if (status == -1 && end_wait_event != true)
+            {
+                std::cout<<end_wait_event<<"\n";
+                std::cout<<"FDFDFDF";
+                throw runtime_error("Wait Event Error Occured\n");
+            }
+            else if (status == 0)
+            {
+                std::cout<<"Wait event timeout occured\n";
+            }
+            else if (status == 1)
+            {
+                no_events = gpiod_line_request_read_edge_events(channelLineRequest[ch_info.gpio],
+                                                                channelEventBuffer[ch_info.gpio],
+                                                                MAX_EVENTS);
+
+                std::cout<<"Events Pending: "<<no_events<<"\n";
+            }
+            else {}
+
+        }
+        catch (exception& e)
+        {
+            cerr << "[Exception] " << e.what() << " (caught from: GPIO::wait_for_edge())" << endl;
+            _cleanup_all();
+            terminate();
+        }
+    }
+
+    void start_thread(int channel)
+    {
+        _run_loop = true;
+        event_handler = new std::thread(callback_handler, channel, event_callbacks);
+        event_handler->detach();
+    }
+
+    void callback_handler(int channel, vector<Callback> event_callbacks)
+    {
+        ChannelInfo ch_info = _channel_to_info(std::to_string(channel), true);
+
+        while (_run_loop)
+        {
+            int status = gpiod_line_request_wait_edge_events (channelLineRequest[ch_info.gpio],
+                                                            BLOCK_FOREVER);
+
+            if (status == -1)
+            {
+                throw runtime_error("Wait Event Error Occured\n");
+            }
+            else if (status == 0)
+            {
+                std::cout<<"Wait event timeout occured\n";
+            }
+            else
+            {
+                gpiod_line_request_read_edge_events(channelLineRequest[ch_info.gpio],
+                                                    channelEventBuffer[ch_info.gpio],
+                                                    MAX_EVENTS);
+                std::cout<<"Event Pending"<<"\n";
+
+                for (auto cb : event_callbacks)
+                {
+                    cb(channel);
+                }
+            }
+        }
+    }
+
+    void event_cleanup(unsigned int channel)
+    {
+        event_callbacks.clear();
+        if (!channelEventBuffer.empty() && channelEventBuffer[channel] != NULL)
+            gpiod_edge_event_buffer_free(channelEventBuffer[channel]);
+
+        stop_thread();
+    }
+
+    void stop_thread()
+    {
+        _run_loop = false;
+        event_handler = nullptr;
+    }
+
     //=============================== PWM =================================
     GpioPwmIf::GpioPwmIf(int channel, int frequency_hz):
                     m_ch_info(_channel_to_info(to_string(channel), true, false))
@@ -725,7 +1066,7 @@ namespace GPIO
                 app_cfg = _app_channel_configuration(pImpl->m_ch_info);
 
                 // warn if channel has been setup external to current program
-                if (app_cfg == UNKNOWN && sysfs_cfg != IN) {
+                if (app_cfg == UNKNOWN && sysfs_cfg != UNKNOWN) {
                     cerr << "[WARNING] This channel is already in use, continuing "
                             "anyway. "
                             "Use GPIO::setwarnings(false) to disable warnings"
@@ -866,5 +1207,25 @@ namespace GPIO
     void output<string>(const std::initializer_list<string> &channels, int value);
     template
     void output<string>(const std::initializer_list<string> &channels, const std::initializer_list<int> &values);
+
+    //======================================= CALLBACK ==============================================
+
+    void Callback::operator()(int input) const
+    {
+        if (function != nullptr)
+            function(input);
+    }
+
+
+    bool operator==(const Callback& A, const Callback& B)
+    {
+        return A.comparer(A.function, B.function);
+    }
+
+
+    bool operator!=(const Callback& A, const Callback& B)
+    {
+        return !(A == B);
+    }
 
 }
