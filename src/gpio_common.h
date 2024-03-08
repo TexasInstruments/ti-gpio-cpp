@@ -88,6 +88,14 @@ class GlobalVariableWrapper
 };
 
 void _cleanup_all();
+
+// handler to call the event callbacks
+void callback_handler(int channel, std::vector<Callback> event_callbacks);
+
+//start and stop threads
+void start_thread(int channel);
+void stop_thread();
+
 Directions _app_channel_configuration(const ChannelInfo& ch_info);
 Directions _channel_configuration(const ChannelInfo& ch_info);
 
