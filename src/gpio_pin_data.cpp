@@ -72,6 +72,9 @@ public:
     const vector<PinDefinition> AM62A_SK_PIN_DEFS;
     const vector<string> compats_am62ask;
 
+    const vector<PinDefinition> AM62P_SK_PIN_DEFS;
+    const vector<string> compats_am62psk;
+
     const map<Model, vector<PinDefinition>> PIN_DEFS_MAP;
     const map<Model, PinInfo> DEVICE_INFO_MAP;
 
@@ -229,19 +232,56 @@ EntirePinData::EntirePinData()
         "ti,am62a7-sk",
         "ti,am62a7"
     },
+    AM62P_SK_PIN_DEFS
+    {
+    //  OFFSET  Sysfs_dir     BOARD   BCM   SOC_NAME      PWM_SysFs PWM_Id
+        {44, "600000.gpio",  "3",  "2", "I2C2_SDA", "None", -1},
+        {43, "600000.gpio",  "5",  "3", "I2C2_SCL", "None", -1},
+        {30, "601000.gpio",  "7",  "4", "GPIO1_30", "None", -1},
+        {25, "601000.gpio",  "8", "14", "GPIO1_25", "None", -1},
+        {24, "601000.gpio",  "10", "15", "GPIO1_24", "None", -1},
+        {11, "601000.gpio",  "11", "17", "GPIO1_11", "None", -1},
+        {14, "601000.gpio",  "12", "18", "GPIO1_14", "23000000.pwm", 1},
+        {42, "600000.gpio",  "13", "27", "GPIO0_42", "None", -1},
+        {22, "601000.gpio",  "15", "22", "GPIO1_22", "None", -1},
+        {38, "600000.gpio",  "16", "23", "GPIO0_38", "None", -1},
+        {39, "600000.gpio",  "18", "24", "GPIO0_39", "None", -1},
+        {18, "601000.gpio",  "19", "10", "GPIO1_18",  "None", -1},
+        {19, "601000.gpio",  "21",  "9", "GPIO1_19",  "None", -1},
+        {14, "600000.gpio",  "22", "25", "GPIO0_14", "None", -1},
+        {17, "601000.gpio",  "23", "11", "GPIO1_17",  "None", -1},
+        {15, "601000.gpio",  "24",  "8", "GPIO1_15",  "None", -1},
+        {16, "601000.gpio",  "26",  "7", "GPIO1_16", "None", -1},
+        {36, "600000.gpio",  "29",  "5", "GPIO0_36", "None", -1},
+        {33, "600000.gpio",  "31",  "6", "GPIO0_33", "None", -1},
+        {40, "600000.gpio",  "32", "12", "GPIO0_40", "None", -1},
+        {10, "601000.gpio",  "33", "13", "GPIO1_10", "23010000.pwm", 1},
+        {13, "601000.gpio",  "35", "19", "GPIO1_13", "23000000.pwm", 0},
+        {9, "601000.gpio",   "36", "16", "GPIO1_09",  "23010000.pwm", 0},
+        {41, "600000.gpio",  "37", "26", "GPIO0_41", "None", -1},
+        {8, "601000.gpio",   "38", "20", "GPIO1_08", "None", -1},
+        {7, "601000.gpio",   "40", "21", "GPIO1_07", "None", -1}
+    },
+    compats_am62psk
+    {
+        "ti,am62p5-sk",
+        "ti,am62p5"
+    },
     PIN_DEFS_MAP
     {
         { J721E_SK, J721E_SK_PIN_DEFS },
         { AM68_SK,  AM68_SK_PIN_DEFS },
         { AM69_SK,  AM69_SK_PIN_DEFS },
-        { AM62A_SK, AM62A_SK_PIN_DEFS }
+        { AM62A_SK, AM62A_SK_PIN_DEFS },
+        { AM62P_SK, AM62P_SK_PIN_DEFS }
     },
     DEVICE_INFO_MAP
     {
         { J721E_SK, {1, "8192M", "Unknown", "J721e SK", "TI", "ARM A72"} },
         { AM68_SK,  {1, "8192M", "Unknown", "AM68 SK", "TI", "ARM A72"} },
         { AM69_SK,  {1, "8192M", "Unknown", "AM69 SK", "TI", "ARM A72"} },
-        { AM62A_SK,  {1, "8192M", "Unknown", "AM62A SK", "TI", "ARM A53"} }
+        { AM62A_SK,  {1, "8192M", "Unknown", "AM62A SK", "TI", "ARM A53"} },
+        { AM62P_SK,  {1, "8192M", "Unknown", "AM62P SK", "TI", "ARM A53"} }
     }
 {};
 
@@ -340,6 +380,10 @@ PinData get_data()
         else if (matches(_DATA.compats_am62ask))
         {
             model = AM62A_SK;
+        }
+        else if (matches(_DATA.compats_am62psk))
+        {
+            model = AM62P_SK;
         }
 
         else
