@@ -40,27 +40,38 @@ enum class Model
 };
 
 // alias
-constexpr Model J721E_SK = Model::J721E_SK;
-constexpr Model AM68_SK = Model::AM68_SK;
-constexpr Model AM69_SK = Model::AM69_SK;
-constexpr Model AM62A_SK = Model::AM62A_SK;
-constexpr Model AM62P_SK = Model::AM62P_SK;
+constexpr Model    J721E_SK = Model::J721E_SK;
+constexpr Model    AM68_SK  = Model::AM68_SK;
+constexpr Model    AM69_SK  = Model::AM69_SK;
+constexpr Model    AM62A_SK = Model::AM62A_SK;
+constexpr Model    AM62P_SK = Model::AM62P_SK;
 
-
-static std::string ModelToString(Model m)
+static std::string ModelToString( Model m )
 {
-    if(m == Model::J721E_SK)
+    if( m == Model::J721E_SK )
+    {
         return "J721E_SK";
-    else if(m == Model::AM68_SK)
+    }
+    else if( m == Model::AM68_SK )
+    {
         return "AM68_SK";
-    else if(m == Model::AM69_SK)
+    }
+    else if( m == Model::AM69_SK )
+    {
         return "AM69_SK";
-    else if(m == Model::AM62A_SK)
+    }
+    else if( m == Model::AM62A_SK )
+    {
         return "AM62A_SK";
-    else if(m == Model::AM62P_SK)
+    }
+    else if( m == Model::AM62P_SK )
+    {
         return "AM62P_SK";
+    }
     else
+    {
         return "None";
+    }
 }
 
 #endif

@@ -28,9 +28,9 @@ DEALINGS IN THE SOFTWARE.
 #define GPIO_PWM_IF_H
 
 // Standard headers
+#include <mutex>
 #include <string>
 #include <thread>
-#include <mutex>
 
 // Interface headers
 #include <GPIO.h>
@@ -40,21 +40,23 @@ DEALINGS IN THE SOFTWARE.
 
 namespace GPIO
 {
-// PWM class ==========================================================
-class GpioPwmIf {
-    public:
-        GpioPwmIf(int channel, int frequency_hz);
-        virtual void start() = 0;
-        virtual void stop() = 0;
-        virtual void _reconfigure(int frequency_hz, double duty_cycle_percent, bool start = false) = 0;
-        virtual ~GpioPwmIf(){};
+    // PWM class ==========================================================
+    class GpioPwmIf
+    {
+      public:
+        GpioPwmIf( int channel, int frequency_hz );
+        virtual void start( )                           = 0;
+        virtual void stop( )                            = 0;
+        virtual void _reconfigure( int frequency_hz, double duty_cycle_percent,
+                                   bool start = false ) = 0;
+        virtual ~GpioPwmIf( ){ };
 
-    public:
+      public:
         ChannelInfo m_ch_info;
-        int         m_frequency_hz{0};
-        double      m_duty_cycle_percent{0.0};
-        bool        m_started{false};
-};
+        int         m_frequency_hz{ 0 };
+        double      m_duty_cycle_percent{ 0.0 };
+        bool        m_started{ false };
+    };
 
 } // namespace GPIO
 
