@@ -39,53 +39,61 @@ DEALINGS IN THE SOFTWARE.
 using namespace std;
 
 // Pin Definitions
-const int led_pin_1 = 11;  // BOARD pin 11
-const int led_pin_2 = 13; // BOARD pin 13
-const int but_pin = 18;   // BOARD pin 18
+const int   led_pin_1        = 7;  // BOARD pin 7
+const int   led_pin_2        = 11; // BOARD pin 11
+const int   but_pin          = 18; // BOARD pin 18
 
 static bool end_this_program = false;
 
-inline void delayMs(int ms) { this_thread::sleep_for(chrono::milliseconds(ms)); }
-
-void signalHandler(int s) { end_this_program = true; }
-
-void blink(int channel)
+inline void delayMs( int ms )
 {
-    puts("Blink LED 2");
-    for (int i = 0; i < 5; ++i) {
-        GPIO::output(led_pin_2, GPIO::HIGH);
-        delayMs(500);
-        GPIO::output(led_pin_2, GPIO::LOW);
-        delayMs(500);
+    this_thread::sleep_for( chrono::milliseconds( ms ) );
+}
+
+void signalHandler( int s )
+{
+    end_this_program = true;
+}
+
+void blink( int channel )
+{
+    puts( "Blink LED 2" );
+    for( int i = 0; i < 5; ++i )
+    {
+        GPIO::output( led_pin_2, GPIO::HIGH );
+        delayMs( 500 );
+        GPIO::output( led_pin_2, GPIO::LOW );
+        delayMs( 500 );
     }
 }
 
-int main()
+int main( )
 {
     // When CTRL+C pressed, signalHandler will be called
-    signal(SIGINT, signalHandler);
+    signal( SIGINT, signalHandler );
 
     // Pin Setup.
-    GPIO::setmode(GPIO::BOARD);
+    GPIO::setmode( GPIO::BOARD );
 
     // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(led_pin_1, GPIO::OUT, GPIO::LOW);
-    GPIO::setup(led_pin_2, GPIO::OUT, GPIO::LOW);
-    GPIO::setup(but_pin, GPIO::IN);
+    GPIO::setup( led_pin_1, GPIO::OUT, GPIO::LOW );
+    GPIO::setup( led_pin_2, GPIO::OUT, GPIO::LOW );
+    GPIO::setup( but_pin, GPIO::IN );
 
     cout << "Starting demo now! Press CTRL+C to exit" << endl;
 
-    GPIO::add_event_detect(but_pin, GPIO::Edge::RISING, blink, 10);
+    GPIO::add_event_detect( but_pin, GPIO::Edge::RISING, blink, 10 );
 
-    while (!end_this_program) {
+    while( !end_this_program )
+    {
         // Blink LED 1 slowly
-        GPIO::output(led_pin_1, GPIO::HIGH);
-        delayMs(2000);
-        GPIO::output(led_pin_1, GPIO::LOW);
-        delayMs(2000);
+        GPIO::output( led_pin_1, GPIO::HIGH );
+        delayMs( 2000 );
+        GPIO::output( led_pin_1, GPIO::LOW );
+        delayMs( 2000 );
     }
 
-    GPIO::cleanup();
+    GPIO::cleanup( );
 
     return 0;
 }
