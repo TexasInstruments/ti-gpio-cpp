@@ -28,77 +28,81 @@ DEALINGS IN THE SOFTWARE.
 #define GPIO_COMMON_H
 
 // Standard headers
-#include <string>
 #include <map>
 #include <set>
+#include <string>
 
 // Local headers
+#include "gpio_pin_data.h"
 #include "model.h"
 #include "python_functions.h"
-#include "gpio_pin_data.h"
 
 // Interface headers
 #include <GPIO.h>
 
+#define TIME_MS_TO_US( time_ms ) time_ms * 1000
+#define TIME_MS_TO_NS( time_ms ) time_ms * 1000000
+
 namespace GPIO
 {
-// These are only for implementation
-constexpr Directions UNKNOWN = Directions::UNKNOWN;
-constexpr Directions HARD_PWM = Directions::HARD_PWM;
+    // These are only for implementation
+    constexpr Directions UNKNOWN  = Directions::UNKNOWN;
+    constexpr Directions HARD_PWM = Directions::HARD_PWM;
 
-//================================================================================
-/*
-All global variables are wrapped in a singleton class except for public APIs,
-in order to avoid initialization order problem among global variables in
-different compilation units.
- */
+    //================================================================================
+    /*
+    All global variables are wrapped in a singleton class except for public
+    APIs, in order to avoid initialization order problem among global variables
+    in different compilation units.
+     */
 
-class GlobalVariableWrapper
-{
-    public:
+    class GlobalVariableWrapper
+    {
+      public:
         // -----Global Variables----
         // NOTE: DON'T change the declaration order of fields.
         // declaration order == initialization order
 
-        PinData _pinData;
-        const Model _model;
+        PinData       _pinData;
+        const Model   _model;
         const PinInfo _BOARD_INFO;
-        const std::map<GPIO::NumberingModes, std::map<std::string, ChannelInfo>> _channel_data_by_mode;
+        const std::map<GPIO::NumberingModes, std::map<std::string, ChannelInfo>>
+            _channel_data_by_mode;
 
         // A map used as lookup tables for pin to linux gpio mapping
         std::map<std::string, ChannelInfo> _channel_data;
 
-        bool _gpio_warnings;
-        NumberingModes _gpio_mode;
-        std::map<std::string, Directions> _channel_configuration;
-        std::map<std::string, bool> _pwm_channels;
+        bool                               _gpio_warnings;
+        NumberingModes                     _gpio_mode;
+        std::map<std::string, Directions>  _channel_configuration;
+        std::map<std::string, bool>        _pwm_channels;
 
-        GlobalVariableWrapper(const GlobalVariableWrapper&) = delete;
-        GlobalVariableWrapper& operator=(const GlobalVariableWrapper&) = delete;
+        GlobalVariableWrapper( const GlobalVariableWrapper & ) = delete;
+        GlobalVariableWrapper &operator=( const GlobalVariableWrapper & ) =
+            delete;
 
-        static GlobalVariableWrapper& get_instance();
+        static GlobalVariableWrapper &get_instance( );
 
-        static std::string get_model();
+        static std::string            get_model( );
 
-        static std::string get_BOARD_INFO();
+        static std::string            get_BOARD_INFO( );
 
-    private:
-        GlobalVariableWrapper();
+      private:
+        GlobalVariableWrapper( );
+    };
 
-};
+    void _cleanup_all( );
 
-void _cleanup_all();
+    // handler to call the event callbacks
+    void callback_handler( int channel );
 
-// handler to call the event callbacks
-void callback_handler(int channel, std::vector<Callback> event_callbacks);
+    // start and stop threads
+    void       start_thread( int channel );
+    void       stop_thread( );
 
-//start and stop threads
-void start_thread(int channel);
-void stop_thread();
+    Directions _app_channel_configuration( const ChannelInfo &ch_info );
+    Directions _channel_configuration( const ChannelInfo &ch_info );
 
-Directions _app_channel_configuration(const ChannelInfo& ch_info);
-Directions _channel_configuration(const ChannelInfo& ch_info);
-
-}
+} // namespace GPIO
 
 #endif /* GPIO_COMMON_H */

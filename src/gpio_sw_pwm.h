@@ -33,27 +33,28 @@ DEALINGS IN THE SOFTWARE.
 namespace GPIO
 {
     // SW PWM class ==========================================================
-    class GpioPwmIfSw: public GpioPwmIf
+    class GpioPwmIfSw : public GpioPwmIf
     {
-        public:
-            GpioPwmIfSw(int channel, int frequency_hz);
-            void start() final;
-            void stop() final;
-            void _reconfigure(int frequency_hz, double duty_cycle_percent, bool start = false) final;
-            ~GpioPwmIfSw();
+      public:
+        GpioPwmIfSw( int channel, int frequency_hz );
+        void start( ) final;
+        void stop( ) final;
+        void _reconfigure( int frequency_hz, double duty_cycle_percent,
+                           bool start = false ) final;
+        ~GpioPwmIfSw( );
 
-        public:
-            bool        m_stop_thread{false};
-            double      m_basetime{0.0};
-            double      m_slicetime{0.0};
-            long        m_on_time{0L};
-            long        m_off_time{0L};
-            std::thread m_thread;
-            std::mutex  m_lock;
+      public:
+        bool        m_stop_thread{ false };
+        double      m_basetime{ 0.0 };
+        double      m_slicetime{ 0.0 };
+        long        m_on_time{ 0L };
+        long        m_off_time{ 0L };
+        std::thread m_thread;
+        std::mutex  m_lock;
 
-        private:
-            void pwm_thread();
-            void calculate_times();
+      private:
+        void pwm_thread( );
+        void calculate_times( );
     };
 
 } // namespace GPIO
