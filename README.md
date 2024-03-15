@@ -1,5 +1,5 @@
 # ti-gpio-cpp - A Linux based CPP library for TI GPIO RPi header enabled platforms
-ti-gpio-cpp is an C++ port of the **TI.GPIO Python library**(https://github.com/TexasInstruments/ti-gpio-py).    
+ti-gpio-cpp is an C++ port of the **TI.GPIO Python library**(https://github.com/TexasInstruments/ti-gpio-py).
 
 TI J72e SK development board contain a 40 pin GPIO
 header, similar to the 40 pin header in the Raspberry Pi. These GPIOs can be
@@ -58,7 +58,7 @@ The library and headers will be placed under the following directory structire. 
 # Library API
 
 The library provides almost same APIs as the the TI's TI.GPIO Python library.
-The following discusses the use of each API:  
+The following discusses the use of each API:
 
 #### 1. Include the libary
 
@@ -67,7 +67,7 @@ To include the GPIO use:
 #include <GPIO.h>
 ```
 
-All public APIs are declared in namespace "GPIO". If you want to make your code shorter, you can use:  
+All public APIs are declared in namespace "GPIO". If you want to make your code shorter, you can use:
 ```cpp
 using namespace GPIO; // optional
 ```
@@ -176,8 +176,8 @@ GPIO.output(channels, values);
 
 #### 7. Clean up
 
-At the end of the program, it is good to clean up the channels so that all pins
-are set in their default state. To clean up all channels used, call:
+At the end of the program, it is good to clean up the PWM and event detected GPIO channels so that all pins
+are set in their default state. To clean up all PWM channels used, call:
 
 ```cpp
 GPIO::cleanup();
@@ -262,11 +262,11 @@ void callback_fn(int channel) {
 GPIO::add_event_detect(channel, GPIO::RISING, callback_fn);
 ```
 
-Any object that satisfies the following requirements can be used as callback functions. 
+Any object that satisfies the following requirements can be used as callback functions.
 
 - Callable (argument type: int, return type: void)
-- Copy-constructible 
-- Equality-comparable with same type (ex> func0 == func1)  
+- Copy-constructible
+- Equality-comparable with same type (ex> func0 == func1)
 
 Here is a user-defined type callback example:
 
@@ -337,7 +337,7 @@ Similarly, if the edge detection is no longer required it can be removed as foll
 GPIO::remove_event_detect(channel);
 ```
 
-#### 10. Check function of GPIO channels  
+#### 10. Check function of GPIO channels
 
 This feature allows you to check the function of the provided GPIO channel:
 
@@ -347,7 +347,7 @@ GPIO::Directions direction = GPIO::gpio_function(channel);
 
 The function returns either GPIO::IN(GPIO::Directions::IN) or GPIO::OUT(GPIO::Directions::OUT) which are the instances of enum class GPIO::Directions.
 
-#### 11. PWM  
+#### 11. PWM
 
 See `samples/simple_pwm.cpp` for details on how to use PWM channels.
 
@@ -363,4 +363,3 @@ For the SW package search for "Software Development Kit for DRA829 & TDA4VM Jaci
 A good FAQ on handling Pinmux changes can be found at the following link
 
 * [TDA4VM Pinmux guide](https://e2e.ti.com/support/processors-group/processors/f/processors-forum/927526/faq-ccs-tda4vm-pinmux-guide-for-jacinto-processors).
-

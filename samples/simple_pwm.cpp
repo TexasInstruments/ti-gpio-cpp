@@ -27,9 +27,9 @@ DEALINGS IN THE SOFTWARE.
 #include <iostream>
 // for delay function.
 #include <chrono>
-#include <thread>
 #include <map>
 #include <string>
+#include <thread>
 
 // for signal handling
 #include <signal.h>
@@ -38,68 +38,67 @@ DEALINGS IN THE SOFTWARE.
 #include <GPIO.h>
 
 using namespace std;
-const map<string, int> output_pins{{"J721E_SK", 29},
-                                   {"AM68_SK", 32},
-                                   {"AM69_SK", 32},
-                                   {"AM62A_SK",12},
-                                   {"AM62P_SK",12}
-                                  };
+const map<string, int> output_pins{ { "J721E_SK", 29 },
+                                    { "AM68_SK", 32 },
+                                    { "AM69_SK", 32 },
+                                    { "AM62A_SK", 12 },
+                                    { "AM62P_SK", 12 } };
 
-int get_output_pin()
+int                    get_output_pin( )
 {
-	if (output_pins.find(GPIO::model) == output_pins.end())
-	{
-		cerr << "PWM not supported on this board\n";
-		terminate();
-	}
+    if( output_pins.find( GPIO::model ) == output_pins.end( ) )
+    {
+        cerr << "PWM not supported on this board\n";
+        terminate( );
+    }
 
-	return output_pins.at(GPIO::model);
+    return output_pins.at( GPIO::model );
 }
 
-inline void delay(int s)
+inline void delay( int s )
 {
-	this_thread::sleep_for(chrono::seconds(s));
+    this_thread::sleep_for( chrono::seconds( s ) );
 }
 
 static bool end_this_program = false;
 
-void signalHandler(int s)
+void        signalHandler( int s )
 {
-	end_this_program = true;
+    end_this_program = true;
 }
 
-int main()
+int main( )
 {
-	// Pin Definitions
-	int output_pin = get_output_pin();
+    // Pin Definitions
+    int output_pin = get_output_pin( );
 
-	// When CTRL+C pressed, signalHandler will be called
-	signal(SIGINT, signalHandler);
+    // When CTRL+C pressed, signalHandler will be called
+    signal( SIGINT, signalHandler );
 
-	// Pin Setup.
-	// Board pin-numbering scheme
-	GPIO::setmode(GPIO::BOARD);
+    // Pin Setup.
+    // Board pin-numbering scheme
+    GPIO::setmode( GPIO::BOARD );
 
-	// set pin as an output pin with optional initial state of HIGH
-	GPIO::setup(output_pin, GPIO::OUT, GPIO::HIGH);
-	GPIO::PWM p(output_pin, 50);
-	auto val = 25.0;
-	p.start(val);
+    // set pin as an output pin with optional initial state of HIGH
+    GPIO::setup( output_pin, GPIO::OUT, GPIO::HIGH );
+    GPIO::PWM p( output_pin, 50 );
+    auto      val = 25.0;
+    p.start( val );
 
-	cout << "PWM running. Press CTRL+C to exit." << endl;
+    cout << "PWM running. Press CTRL+C to exit." << endl;
 
-	while (!end_this_program)
-	{
-		delay(1);
-        p.ChangeDutyCycle(10);
-		delay(1);
-        p.ChangeDutyCycle(75);
-		delay(1);
-        p.ChangeDutyCycle(val);
-	}
+    while( !end_this_program )
+    {
+        delay( 1 );
+        p.ChangeDutyCycle( 10 );
+        delay( 1 );
+        p.ChangeDutyCycle( 75 );
+        delay( 1 );
+        p.ChangeDutyCycle( val );
+    }
 
-	p.stop();
-	GPIO::cleanup();
+    p.stop( );
+    GPIO::cleanup( );
 
-	return 0;
+    return 0;
 }

@@ -35,22 +35,23 @@ DEALINGS IN THE SOFTWARE.
 namespace GPIO
 {
     // HW PWM class ==========================================================
-    class GpioPwmIfHw: public GpioPwmIf
+    class GpioPwmIfHw : public GpioPwmIf
     {
-        public:
-            GpioPwmIfHw(int channel, int frequency_hz);
-            void start() final;
-            void stop() final;
-            void _reconfigure(int frequency_hz, double duty_cycle_percent, bool start = false) final;
-            ~GpioPwmIfHw();
+      public:
+        GpioPwmIfHw( int channel, int frequency_hz );
+        void start( ) final;
+        void stop( ) final;
+        void _reconfigure( int frequency_hz, double duty_cycle_percent,
+                           bool start = false ) final;
+        ~GpioPwmIfHw( );
 
-        public:
-            int         m_period_ns{0};
-            int         m_duty_cycle_ns{0};
+      public:
+        int m_period_ns{ 0 };
+        int m_duty_cycle_ns{ 0 };
     };
 
-    void hw_disable_pwm(const ChannelInfo& ch_info);
-    void hw_unexport_pwm(const ChannelInfo& ch_info);
+    void hw_disable_pwm( const ChannelInfo &ch_info );
+    void hw_unexport_pwm( const ChannelInfo &ch_info );
 
 } // namespace GPIO
 

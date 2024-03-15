@@ -25,9 +25,9 @@ DEALINGS IN THE SOFTWARE.
 */
 
 // Standard headers
-#include <signal.h>
 #include <chrono>
 #include <iostream>
+#include <signal.h>
 #include <thread>
 
 // Interface headers
@@ -37,40 +37,45 @@ using namespace std;
 
 static bool end_this_program = false;
 
-inline void delay(int s) { this_thread::sleep_for(chrono::seconds(s)); }
+inline void delay( int s )
+{
+    this_thread::sleep_for( chrono::seconds( s ) );
+}
 
-void signalHandler(int s) { end_this_program = true; }
+void signalHandler( int s )
+{
+    end_this_program = true;
+}
 
-int main()
+int main( )
 {
     // When CTRL+C pressed, signalHandler will be called
-    signal(SIGINT, signalHandler);
+    signal( SIGINT, signalHandler );
 
     // Pin Definitions
     int led_pin = 7;  // BOARD pin 7
     int but_pin = 11; // BOARD pin 11
 
     // Pin Setup.
-    GPIO::setmode(GPIO::BOARD);
+    GPIO::setmode( GPIO::BOARD );
 
     // set pin as an output pin with optional initial state of HIGH
-    GPIO::setup(led_pin, GPIO::OUT, GPIO::LOW);
-    GPIO::setup(but_pin, GPIO::IN);
+    GPIO::setup( led_pin, GPIO::OUT, GPIO::LOW );
+    GPIO::setup( but_pin, GPIO::IN );
 
     cout << "Starting demo now! Press CTRL+C to exit" << endl;
 
-    while (!end_this_program) {
+    while( !end_this_program )
+    {
         cout << "Waiting for button event" << endl;
-        GPIO::wait_for_edge(but_pin, GPIO::Edge::FALLING);
+        GPIO::wait_for_edge( but_pin, GPIO::Edge::FALLING );
 
         // event received when button pressed
         cout << "Button Pressed!" << endl;
-        GPIO::output(led_pin, GPIO::HIGH);
-        delay(1);
-        GPIO::output(led_pin, GPIO::LOW);
+        GPIO::output( led_pin, GPIO::HIGH );
+        delay( 1 );
+        GPIO::output( led_pin, GPIO::LOW );
     }
-
-    GPIO::cleanup();
 
     return 0;
 }
