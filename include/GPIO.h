@@ -49,7 +49,7 @@ namespace std
 
 namespace GPIO
 {
-   constexpr auto VERSION = "1.2.0";
+   constexpr auto VERSION = "1.3.0";
 
    extern const std::string BOARD_INFO;
    extern const std::string model;
