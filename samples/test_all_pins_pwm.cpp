@@ -51,17 +51,17 @@ using namespace std;
  *  Any GPIO pins can be used for SW PWM.
  *  Pins 32,33,36: HW PWM pins
  *
- * AM69_SK:
- *  Pins 7,15,19,21,22,23,24,26,29,31: GPIO pins used for SW PWM.
+ * AM62A_SK:
+ *  Pins 8,10,11,13,15,16,18,19,21,22,23,24,26,29,31,32,37,38,40: GPIO pins used for SW PWM.
  *  Any GPIO pins can be used for SW PWM.
- *  Pins 32,33,36: HW PWM pins
+ *  Pins 12,33,35,36: HW PWM pins
  */
 const map<string, vector<int>>
 all_pwm_pins{
     {"J721E_SK", {11,12,29,31,32,33}},
     {"AM68_SK",  {7,15,19,21,22,23,24,26,29,31,32,33,36}},
     {"AM69_SK",  {7,15,19,21,22,23,24,26,29,31,32,33,36}},
-    {"AM62A_SK", {12,13,15,16,18,22,29,31,32,33,35,36,37}},
+    {"AM62A_SK", {8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40}},
     {"AM62P_SK", {8,10,11,13,15,16,18,19,21,22,23,24,26,29,31,32,33,36,37}},
 };
 

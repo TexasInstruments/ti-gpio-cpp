@@ -38,7 +38,7 @@ DEALINGS IN THE SOFTWARE.
 using namespace std;
 
 // Pin Definitions
-const int button_pin = 11; // BOARD pin 11
+const int button_pin = 18; // BOARD pin 11
 
 bool end_this_program = false, cb1 = false, cb2 = false;
 atomic_int cb, wb, ewthr;
@@ -331,7 +331,7 @@ int main()
     cout << "lib version: " << GPIO::VERSION << endl;
     cout << GPIO::BOARD_INFO << endl;
 
-    int output_pin = 7;
+    int output_pin = 11;
     GPIO::setmode(GPIO::BOARD);
     GPIO::setup(output_pin, GPIO::OUT, GPIO::HIGH);
 
