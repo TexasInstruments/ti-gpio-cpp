@@ -36,7 +36,8 @@ enum class Model
     AM68_SK,
     AM69_SK,
     AM62A_SK,
-    AM62P_SK
+    AM62P_SK,
+    J722S_EVM
 };
 
 // alias
@@ -45,6 +46,7 @@ constexpr Model    AM68_SK  = Model::AM68_SK;
 constexpr Model    AM69_SK  = Model::AM69_SK;
 constexpr Model    AM62A_SK = Model::AM62A_SK;
 constexpr Model    AM62P_SK = Model::AM62P_SK;
+constexpr Model    J722S_EVM = Model::J722S_EVM;
 
 static std::string ModelToString( Model m )
 {
@@ -67,6 +69,10 @@ static std::string ModelToString( Model m )
     else if( m == Model::AM62P_SK )
     {
         return "AM62P_SK";
+    }
+    else if( m == Model::J722S_EVM )
+    {
+        return "J722S_EVM";
     }
     else
     {

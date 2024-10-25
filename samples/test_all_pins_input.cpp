@@ -71,6 +71,13 @@ const TestPinData am62p_pin_data = {
       "GPIO0_39", "GPIO1_18", "GPIO1_19", "GPIO0_14", "GPIO1_17", "GPIO0_36",
       "GPIO0_33", "GPIO0_40", "GPIO0_41" } };
 
+const TestPinData j722s_pin_data = {
+    { 7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26, 32, 35, 37, 38, 40},
+    { 4, 14, 15, 17, 18, 27, 22, 23, 24, 10, 9, 25, 11, 8, 7, 12, 19, 26, 20, 21},
+    { "GPIO0_38", "GPIO1_14", "GPIO1_13", "GPIO1_08", "GPIO1_11", "GPIO0_33", "GPIO1_07",
+      "MCU_GPIO0_07", "MCU_GPIO0_08", "MCU_GPIO0_03", "MCU_GPIO0_04", "GPIO0_42", "MCU_GPIO0_02",
+      "MCU_GPIO0_00","MCU_GPIO0_01", "GPIO1_16", "GPIO1_12", "GPIO0_36", "GPIO1_10", "GPIO1_09" } };
+
 static map<GPIO::NumberingModes, string> board_mode = {
     { GPIO::BOARD, "GPIO::BOARD" },
     { GPIO::BCM, "GPIO::BCM" },
@@ -84,7 +91,8 @@ const map<string, const TestPinData *> gPin_data = {
     { "AM68_SK", &am68a_pin_data },
     { "AM69_SK", &am69a_pin_data },
     { "AM62A_SK", &am62a_pin_data },
-    { "AM62P_SK", &am62p_pin_data } };
+    { "AM62P_SK", &am62p_pin_data },
+    { "J722S_EVM", &j722s_pin_data } };
 
 template <typename T>
 int run_test( GPIO::NumberingModes mode, const initializer_list<T> pins )
@@ -149,7 +157,7 @@ int main( )
 
     status           |= run_test( GPIO::BOARD, pins->board_pins );
     status           |= run_test( GPIO::BCM, pins->bcm_pins );
-    // status |= run_test(GPIO::SOC,   pins->soc_pins);
+    status           |= run_test(GPIO::SOC,   pins->soc_pins);
 
     cout << "end" << endl;
     return status;
