@@ -25,7 +25,7 @@ project(ti_gpio)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/common.cmake)
 
 # Build the library
-build_lib(${PROJECT_NAME} STATIC 2.0.0
+build_lib(${PROJECT_NAME} STATIC 2.1.0
           src/gpio.cpp
           src/gpio_pin_data.cpp
           src/gpio_common.cpp
